@@ -324,11 +324,13 @@ end
 
 local function cleanup_frame(frame)
     if frame.overlay then
-        frame.overlay:remove()
+        -- Element may be invalid if page navigated or element was removed
+        pcall(function() frame.overlay:remove() end)
         frame.overlay = nil
     end
     if frame.stylesheet then
-        frame.stylesheet:remove()
+        -- Element may be invalid if page navigated or element was removed
+        pcall(function() frame.stylesheet:remove() end)
         frame.stylesheet = nil
     end
 end
@@ -427,7 +429,10 @@ function _M.enter(page, elements, stylesheet, ignore_case)
     assert(type(elements) == "string" or type(elements) == "table")
     assert(type(stylesheet) == "string")
     local page_id = page.id
-    assert(page_states[page_id] == nil)
+    -- Clean up any stale state from failed previous cleanup
+    if page_states[page_id] then
+        _M.leave(page_id)
+    end
 
     local root = page.document
     local root_frame = { doc = root, body = root.body }
