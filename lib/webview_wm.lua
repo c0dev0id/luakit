@@ -3,7 +3,7 @@
 -- The webview module wraps the webview widget provided by luakit, adding
 -- several convenience APIs and providing basic functionality.
 --
--- @submodule webview
+-- @submodule webview_wm
 -- @copyright 2017 Aidan Holm <aidanholm@gmail.com>
 -- @copyright 2012 Mason Larobina <mason.larobina@gmail.com>
 

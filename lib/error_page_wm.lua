@@ -1,6 +1,6 @@
 -- Error pages - web module.
 --
--- @submodule error_page
+-- @submodule error_page_wm
 -- @copyright 2016 Aidan Holm <aidanholm@gmail.com>
 
 local ui = ipc_channel("error_page_wm")

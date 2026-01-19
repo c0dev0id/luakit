@@ -70,7 +70,7 @@ local pages = parse_pages_files(find_files(config.pages, "%.md$"))
 local module_docs = {}
 local class_docs = {}
 for _, doc in ipairs(docs) do
-    if doc.module then table.insert(module_docs, doc) end
+    if doc.module or doc.submodule then table.insert(module_docs, doc) end
     if doc.class then table.insert(class_docs, doc) end
 end
 

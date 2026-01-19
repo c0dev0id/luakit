@@ -1,5 +1,5 @@
--- Add custom luakit:// scheme rendering functions.
--- @submodule chrome
+-- Add custom luakit:// scheme rendering functions - web module.
+-- @submodule chrome_wm
 -- @copyright 2017 Aidan Holm <aidanholm@gmail.com>
 
 local ui = ipc_channel("chrome_wm")

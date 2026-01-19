@@ -1,6 +1,6 @@
--- Customize how single images are displayed in the browser.
+-- Customize how single images are displayed in the browser - web module.
 --
--- @submodule image_css
+-- @submodule image_css_wm
 -- @copyright 2017 Aidan Holm <aidanholm@gmail.com>
 
 local ui = ipc_channel("image_css_wm")
