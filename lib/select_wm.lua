@@ -318,8 +318,12 @@ local function init_frame(frame, stylesheet)
     frame.overlay = frame.doc:create_element("div", { id = "luakit_select_overlay" })
     frame.stylesheet = frame.doc:create_element("style", { id = "luakit_select_stylesheet" }, stylesheet)
 
-    frame.body.parent:append(frame.overlay)
-    frame.body.parent:append(frame.stylesheet)
+    -- Append elements - may fail if parent invalid, page navigated, or DOM changed
+    -- Use pcall to gracefully handle errors instead of crashing
+    if frame.body.parent then
+        pcall(function() frame.body.parent:append(frame.overlay) end)
+        pcall(function() frame.body.parent:append(frame.stylesheet) end)
+    end
 end
 
 local function cleanup_frame(frame)
