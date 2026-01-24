@@ -1,4 +1,4 @@
-name: Cross Distribution Check
+name: Test Debian, Arch, Alpine, Void
 
 on:
   workflow_dispatch:
@@ -23,19 +23,19 @@ jobs:
         apt-get update
         apt-get install -y \
           build-essential \
-          libgtk-3-dev \
-          libwebkit2gtk-4.1-dev \
-          libsqlite3-dev \
-          lua5.1 \
-          liblua5.1-0-dev \
           luajit \
           libluajit-5.1-dev \
+          libjavascriptcoregtk-4.1-dev \
+          libwebkit2gtk-4.1-dev \
+          libgtk-3-dev \
+          libglib2.0-dev \
+          lua-check \
+          lua-luassert \
           lua-filesystem \
+          lua-socket \
           xvfb \
           xauth \
-          dbus-x11 \
-          lua-busted \
-          lua5.1-luassert
+          dbus-x11
     
     - name: Build luakit
       run: make
@@ -61,16 +61,13 @@ jobs:
       run: |
         pacman -S --noconfirm \
           base-devel \
+          luajit \
           gtk3 \
           webkit2gtk-4.1 \
-          sqlite \
-          lua51 \
-          luajit \
           lua51-filesystem \
+          lua51-socket \
           xorg-server-xvfb \
-          dbus \
-          lua-busted \
-          lua51-luassert
+          dbus
     
     - name: Build luakit
       run: make
@@ -94,12 +91,12 @@ jobs:
       run: |
         apk add --no-cache \
           build-base \
+          luajit-dev \
           gtk+3.0-dev \
           webkit2gtk-4.1-dev \
-          sqlite-dev \
-          lua5.1-dev \
-          luajit-dev \
+          glib-dev \
           lua5.1-filesystem \
+          lua5.1-socket \
           xvfb-run \
           dbus \
           bash
@@ -131,15 +128,14 @@ jobs:
       run: |
         xbps-install -Sy \
           base-devel \
+          LuaJIT-devel \
           gtk+3-devel \
           webkit2gtk-devel \
-          sqlite-devel \
-          lua51-devel \
-          LuaJIT-devel \
+          glib-devel \
           lua51-filesystem \
+          lua51-socket \
           xorg-server-xvfb \
-          dbus \
-          lua51-busted
+          dbus
     
     - name: Build luakit
       run: make

@@ -1,4 +1,4 @@
-name: Run Tests
+name: Test Ubuntu (default)
 
 on:
   push:
@@ -27,7 +27,10 @@ jobs:
           lua-check \
           lua-luassert \
           lua-filesystem \
-          lua-socket
+          lua-socket \
+          xvfb \
+          xauth \
+          dbus-x11
     
     - name: Build luakit
       run: make
