@@ -11,17 +11,13 @@ This document provides instructions for AI assistants working on the Luakit code
 When making changes:
 1. Generate a unified diff patch file with `.patch` extension
 2. Present the patch in a downloadable code block
-3. Provide wget command to download the patch to `/home/sdk/Downloads`
-4. Provide ONLY the git apply commands - assume patch file is already downloaded
 5. Use complete absolute paths in all commands
-6. Use the EXACT filename shown in the code block (including any Version suffixes from download)
 
 **User Environment:**
-- Download directory: `/home/sdk/Downloads` (patches automatically saved here)
+- Download directory: `/home/sdk/Downloads`
 - Repository location: `/home/sdk/luakit`
 - Patch application method: `git apply`
 - Command format: No explanations, no patch creation commands, complete paths only
-- Filename format: Browser may append `_Version2`, `_Version3`, etc. to duplicate downloads
 
 ## Public API Protection
 
@@ -110,7 +106,7 @@ When a public API change is necessary, document it in `MIGRATION_NEXT.md` with:
 - Keep old API working with deprecation warning
 - Document in `MIGRATION_NEXT.md`
 - Provide clear migration path
-- Use `msg.warn()` to inform users at runtime
+- Use `msg.warn()`, `msg.info()` and `msg.error()` to inform users at runtime
 - Plan for removal in future major version
 
 ### 4. Testing API Changes
@@ -130,13 +126,23 @@ API changes require updates in:
 
 When proposing changes, ALWAYS use this format:
 
-1. Show the patch in a downloadable code block
-2. Provide wget command to download (when applicable)
-3. Provide git commands with complete paths
+- create a script that generates the patch file
+- provide a downloadable script file in a code block
+- the script file contains git commands to create file paths
+- the script file applies the patch using absolute paths
+- the script file checks if the patch has already been applied, if so, skip patch
+- example output (stdout) of the script file:
+  ```
+  removing old version: rm -f /home/sdk/Downloads/luakit_fix_bug123.patch (if exists)
+  creating patch: luakit_fix_bug123.patch (relative to /home/sdk/Downloads)
+  creating directory: path/to/modified/file (relative to /home/sdk/luakit)
+  applying patch: done -> <commit_id>
+  applying patch: skipped -> <commit_id_of_already_applied_patch>
+  removing myself: rm -f /home/sdk/Downloads/luakit_fix_bug123.sh (if there was no error above)
+  ```
 
 **Do NOT:**
 - Create pull requests
-- Include cat or patch creation commands
 - Use relative paths
 - Add explanatory text between command blocks
 - Guess at version suffixes
