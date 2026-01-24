@@ -109,11 +109,24 @@ jobs:
             libsoup3 \
             lua51-luafilesystem \
             lua51-luasocket \
+            lua51-luarocks \
+            lua51 \
             luajit \
             sqlite3 \
             webkit2-gtk_41 \
             pkgconf \
             xorg-vfbserver
+
+          echo ""
+          echo "========================================"
+          echo "Fixhacking luarocks (really? FreeBSD?)"
+          echo "========================================"
+          sudo sed -i '' 's/local f, err = load(chunk, filename, "t", _G)/local f, err = loadstring(chunk, filename); if f then setfenv(f, _G) end/' /usr/local/share/lua/5.1/luarocks/core/persist.lua
+
+          echo "========================================"
+          echo "Installing luasocket via luarocks"
+          echo "========================================"
+          sudo luarocks51 install luasocket
           
           echo ""
           echo "========================================"
@@ -125,7 +138,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          xvfb-run -a gmake -j1 run-tests
+          gmake -j1 run-tests
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -157,10 +170,9 @@ jobs:
             gtk+3 \
             luafs \
             lua-socket \
+            luassert \
             luajit \
-            luasocket \
             sqlite3 \
-            webkit \
             webkitgtk41
           
           echo ""
@@ -173,7 +185,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          xvfb-run -a gmake -j1 run-tests
+          gmake -j1 run-tests
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
@@ -204,10 +216,12 @@ jobs:
             gmake \
             gtk3+ \
             lua51-filesystem \
-            lua-socket \
-            luajit \
+            lua51-socket \
+            LuaJIT2 \
             sqlite3 \
-            webkit-gtk
+            webkit-gtk \
+            pkg-config \
+            git || (cat /var/db/pkgin/pkg_install-err.log && false)
           
           echo ""
           echo "========================================"
@@ -219,7 +233,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          xvfb-run -a gmake -j1 run-tests
+          gmake -j1 run-tests
 
 
   debian:
@@ -244,6 +258,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y \
+          build-essential \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -254,12 +269,13 @@ jobs:
           lua-luassert \
           lua-filesystem \
           lua-socket \
+          xvfb \
           git
     
     - name: Built and test
       run: |
         make -j1
-        xvfb-run -a make -j1 run-tests
+        make -j1 run-tests
 
   arch:
     if: github.event_name == 'workflow_dispatch' && inputs.test_arch
@@ -288,7 +304,7 @@ jobs:
           gtk3 \
           lua51-filesystem \
           lua51-socket \
-          luassert \
+          lua51-luassert \
           luajit \
           sqlite \
           webkit2gtk-4.1 \
@@ -297,7 +313,7 @@ jobs:
     - name: Built and test
       run: |
         make -j1
-        xvfb-run -a make -j1 run-tests
+        make -j1 run-tests
 
   alpine:
     if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
@@ -352,25 +368,31 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+
+    - name: Update container packages
+      run: xbps-install -Syu
       
     - name: Install dependencies
       run: |
         xbps-install -Sy \
+          LuaJIT \
           LuaJIT-devel \
           base-devel \
-          dbus \
           glib-devel \
           gtk+3-devel \
+          libwebkit2gtk41-devel \
           lua51-luafilesystem \
-          lua51-socket \
+          lua51-luasocket \
+          luarocks \
+          pkg-config \
           sqlite-devel \
-          webkit2gtk-devel \
           xorg-server-xvfb
-    
+        luarocks install luassert
+
     - name: Built and test
       run: |
         make -j1
-        xvfb-run -a make -j1 run-tests
+        make -j1 run-tests
 
   gentoo:
     if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
@@ -412,7 +434,4 @@ jobs:
     - name: Built and test
       run: |
         make -j1
-        Xvfb :99 -screen 0 1024x768x24 &
-        export DISPLAY=:99
-        sleep 2
         make -j1 run-tests
