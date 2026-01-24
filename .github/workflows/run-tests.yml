@@ -63,7 +63,7 @@ jobs:
           libluajit-5.1-dev \
           libwebkit2gtk-4.1-dev \
           lua-check \
-          lua-filesystem \
+          lua51-luafilesystem \
           lua-luassert \
           lua-socket \
           luajit \
@@ -221,7 +221,7 @@ jobs:
           libluajit-5.1-dev \
           libwebkit2gtk-4.1-dev \
           lua-check \
-          lua-filesystem \
+          lua51-luafilesystem \
           lua-luassert \
           lua-socket \
           luajit \
@@ -336,7 +336,7 @@ jobs:
           dbus \
           glib-devel \
           gtk+3-devel \
-          lua-filesystem \
+          lua51-luafilesystem \
           lua51-socket \
           sqlite-devel \
           webkit2gtk-devel \
