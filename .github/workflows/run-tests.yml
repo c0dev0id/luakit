@@ -308,12 +308,7 @@ jobs:
       run: make
     
     - name: Run tests
-      run: |
-        if command -v busted >/dev/null 2>&1; then
-          xvfb-run -a make run-tests
-        else
-          echo "Warning: busted not available on Alpine, skipping tests"
-        fi
+      run: xvfb-run -a make run-tests
 
   void:
     if: github.event_name == 'workflow_dispatch' && inputs.test_void
