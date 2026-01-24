@@ -310,6 +310,7 @@ jobs:
           x11-libs/gtk+:3 \
           net-libs/webkit-gtk:4.1 \
           dev-libs/glib \
+          dev-db/sqlite \
           dev-lua/luafilesystem \
           dev-lua/luasocket \
           x11-base/xorg-server \
