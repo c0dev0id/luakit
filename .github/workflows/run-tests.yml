@@ -6,10 +6,11 @@ on:
   pull_request:
     branches: [ "**" ]
   workflow_dispatch:
+    inputs:
       test_ubuntu:
         description: 'Test on Ubuntu'
         type: boolean
-        default: true    inputs:
+        default: true
       test_debian:
         description: 'Test on Debian'
         type: boolean
@@ -74,11 +75,10 @@ jobs:
           xauth \
           xvfb
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
-      run: xvfb-run -a make run-tests
+    - name: Built and test
+      run: |
+        make -j1
+        xvfb-run -a make -j1 run-tests
 
   freebsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_freebsd
@@ -113,11 +113,10 @@ jobs:
             webkit2-gtk_41 \
             xorg-vfbserver
 
-    - name: Build luakit
-      run: gmake
-    
-    - name: Run tests
-      run: xvfb-run -a gmake run-tests
+    - name: Built and test
+      run: |
+        gmake -j1
+        xvfb-run -a gmake -j1 run-tests
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -146,16 +145,15 @@ jobs:
             luafs \
             lua-socket \
             luajit \
-            luasocket
+            luasocket \
             sqlite3 \
             webkit \
             webkitgtk41
 
-    - name: Build luakit
-      run: gmake
-    
-    - name: Run tests
-      run: xvfb-run -a gmake run-tests
+    - name: Built and test
+      run: |
+        gmake -j1
+        xvfb-run -a gmake -j1 run-tests
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
@@ -187,11 +185,10 @@ jobs:
             sqlite3 \
             webkit-gtk
 
-    - name: Build luakit
-      run: gmake
-    
-    - name: Run tests
-      run: xvfb-run -a gmake run-tests
+    - name: Built and test
+      run: |
+        gmake -j1
+        xvfb-run -a gmake -j1 run-tests
 
 
   debian:
@@ -232,11 +229,10 @@ jobs:
           xauth \
           xvfb
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
-      run: xvfb-run -a make run-tests
+    - name: Built and test
+      run: |
+        make -j1
+        xvfb-run -a make -j1 run-tests
 
   arch:
     if: github.event_name == 'workflow_dispatch' && inputs.test_arch
@@ -271,11 +267,10 @@ jobs:
           webkit2gtk-4.1 \
           xorg-server-xvfb
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
-      run: xvfb-run -a make run-tests
+    - name: Built and test
+      run: |
+        make -j1
+        xvfb-run -a make -j1 run-tests
 
   alpine:
     if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
@@ -310,11 +305,10 @@ jobs:
           webkit2gtk-4.1-dev \
           xvfb-run
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
-      run: xvfb-run -a make run-tests
+    - name: Built and test
+      run: |
+        make -j1
+        xvfb-run -a make -j1 run-tests
 
   void:
     if: github.event_name == 'workflow_dispatch' && inputs.test_void
@@ -346,11 +340,10 @@ jobs:
           webkit2gtk-devel \
           xorg-server-xvfb
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
-      run: xvfb-run -a make run-tests
+    - name: Built and test
+      run: |
+        make -j1
+        xvfb-run -a make -j1 run-tests
 
   gentoo:
     if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
@@ -389,12 +382,10 @@ jobs:
           x11-base/xorg-server \
           x11-libs/gtk+:3
     
-    - name: Build luakit
-      run: make
-    
-    - name: Run tests
+    - name: Built and test
       run: |
+        make -j1
         Xvfb :99 -screen 0 1024x768x24 &
         export DISPLAY=:99
         sleep 2
-        make run-tests
+        make -j1 run-tests
