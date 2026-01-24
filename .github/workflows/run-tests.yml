@@ -48,6 +48,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          git \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -85,6 +86,7 @@ jobs:
         shell: bash
         run: |
           sudo pkg install -y \
+            git \
             gmake \
             pkgconf \
             luajit \
@@ -97,6 +99,7 @@ jobs:
             sqlite3 \
             xorg-vfbserver \
             dbus
+            git \
             gmake \
             pkgconf \
             luajit \
@@ -124,6 +127,7 @@ jobs:
         shell: bash
         run: |
           sudo pkg_add \
+            git \
             gmake \
             luajit \
             gtk+3 \
@@ -131,6 +135,7 @@ jobs:
             sqlite3 \
             glib2 \
             luafilesystem \
+            git \
             luasocket
             gmake \
             luajit \
@@ -158,6 +163,7 @@ jobs:
       run: |
         apt-get update
         apt-get install -y \
+          git \
           build-essential \
           luajit \
           libluajit-5.1-dev \
@@ -198,6 +204,7 @@ jobs:
       run: |
         pacman -S --noconfirm \
           base-devel \
+          git \
           luajit \
           gtk3 \
           webkit2gtk-4.1 \
@@ -230,6 +237,7 @@ jobs:
       run: |
         apk add --no-cache \
           build-base \
+          git \
           luajit-dev \
           gtk+3.0-dev \
           webkit2gtk-4.1-dev \
@@ -269,6 +277,7 @@ jobs:
       run: |
         xbps-install -Sy \
           base-devel \
+          git \
           LuaJIT-devel \
           gtk+3-devel \
           webkit2gtk-devel \
