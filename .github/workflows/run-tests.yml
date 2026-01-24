@@ -201,6 +201,7 @@ jobs:
           luajit \
           gtk3 \
           webkit2gtk-4.1 \
+          sqlite \
           lua51-filesystem \
           lua51-socket \
           xorg-server-xvfb \
