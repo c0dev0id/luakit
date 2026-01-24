@@ -6,7 +6,10 @@ on:
   pull_request:
     branches: [ "**" ]
   workflow_dispatch:
-    inputs:
+      test_ubuntu:
+        description: 'Test on Ubuntu'
+        type: boolean
+        default: true    inputs:
       test_debian:
         description: 'Test on Debian'
         type: boolean
@@ -41,6 +44,7 @@ on:
         default: false
 jobs:
   ubuntu:
+    if: github.event_name != 'workflow_dispatch' || inputs.test_ubuntu
     name: Ubuntu
     runs-on: ubuntu-latest
     
