@@ -120,8 +120,8 @@ jobs:
             glib2 \
             gmake \
             gtk+3 \
-            lua-socket
-            luafilesystem \
+            luafs \
+            lua-socket \
             luajit \
             luasocket
             sqlite3 \
