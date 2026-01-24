@@ -28,7 +28,9 @@ jobs:
           lua-filesystem \
           xvfb \
           xauth \
-          dbus-x11
+          dbus-x11 \
+          lua-busted \
+          lua5.1-luassert
     
     - name: Build luakit
       run: make
