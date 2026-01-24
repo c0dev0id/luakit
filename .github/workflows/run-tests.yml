@@ -56,10 +56,19 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
       
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: apt-ubuntu-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apt-ubuntu-
+      
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          ccache \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -72,10 +81,66 @@ jobs:
           lua-socket \
           git
     
-    - name: Built and test
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ubuntu-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-ubuntu-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-ubuntu-
+    
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        xvfb-run -a make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: xvfb-run -a make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
 
   freebsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_freebsd
@@ -90,18 +155,23 @@ jobs:
       run: git config --global --add safe.directory /__w/luakit/luakit
     
     - name: Build and test on FreeBSD
+      id: build_test
+      continue-on-error: true
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: freebsd
         version: '14.0'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on FreeBSD"
           echo "========================================"
           
           sudo pkg install -y \
+            ccache \
             dbus \
+            gcc \
             git \
             glib \
             gmake \
@@ -109,7 +179,6 @@ jobs:
             libsoup3 \
             lua51-luafilesystem \
             lua51-luasocket \
-            lua51-luarocks \
             lua51 \
             luajit \
             sqlite3 \
@@ -119,26 +188,77 @@ jobs:
 
           echo ""
           echo "========================================"
-          echo "Fixhacking luarocks (really? FreeBSD?)"
+          echo "Installing luassert + luacheck manually"
           echo "========================================"
-          sudo sed -i '' 's/local f, err = load(chunk, filename, "t", _G)/local f, err = loadstring(chunk, filename); if f then setfenv(f, _G) end/' /usr/local/share/lua/5.1/luarocks/core/persist.lua
+          # Install say dependency
+          git clone --depth 1 https://github.com/Olivine-Labs/say.git /tmp/say || exit 1
+          sudo mkdir -p /usr/local/share/lua/5.1/say
+          sudo cp -R /tmp/say/src/say/ /usr/local/share/lua/5.1/say/ || exit 1
 
+          # Install luassert
+          git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert || exit 1
+          sudo mkdir -p /usr/local/share/lua/5.1/luassert 
+          sudo cp -R /tmp/luassert/src/ /usr/local/share/lua/5.1/luassert/ || exit 1
+          
+          # Install luacheck
+          git clone --depth 1 https://github.com/mpeterv/luacheck.git /tmp/luacheck || exit 1
+          sudo mkdir -p /usr/local/share/lua/5.1/luacheck 
+          sudo cp -R /tmp/luacheck/src/luacheck/ /usr/local/share/lua/5.1/luacheck/ || exit 1
+          
+          # Copy 'luacheck' to a location in your PATH
+          sudo cp -R /tmp/luacheck/bin/luacheck.lua /usr/local/bin/luacheck
+          sudo sed -I.bak 's,#!/usr/bin/env lua$,#!/usr/bin/env lua51,' /usr/local/bin/luacheck
+          sudo chmod +x /usr/local/bin/luacheck
+          
+          echo ""
           echo "========================================"
-          echo "Installing luasocket via luarocks"
+          echo "Setting up ccache"
           echo "========================================"
-          sudo luarocks51 install luasocket
+          export CC="ccache gcc"
+          export CXX="ccache g++"
           
           echo ""
           echo "========================================"
           echo "Building luakit"
           echo "========================================"
-          gmake -j1
+          gmake -j1 || (echo "BUILD_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          gmake -j1 run-tests
+          gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "$BUILD_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "$TEST_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build_test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-freebsd
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build_test.outcome == 'failure'
+      run: exit 1
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -153,17 +273,21 @@ jobs:
       run: git config --global --add safe.directory /__w/luakit/luakit
     
     - name: Build and test on OpenBSD
+      id: build_test
+      continue-on-error: true
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: openbsd
         version: '7.5'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on OpenBSD"
           echo "========================================"
           
           sudo pkg_add \
+            ccache \
             git \
             glib2 \
             gmake \
@@ -171,21 +295,60 @@ jobs:
             luafs \
             luasocket \
             luassert \
+            luacheck \
             luajit \
             sqlite3 \
             webkitgtk41
           
           echo ""
           echo "========================================"
+          echo "Setting up ccache"
+          echo "========================================"
+          export CC="ccache clang"
+          export CXX="ccache clang"
+          
+          echo ""
+          echo "========================================"
           echo "Building luakit"
           echo "========================================"
-          gmake -j1
+          gmake -j1 || (echo "BUILD_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          gmake -j1 run-tests
+          gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "$BUILD_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "$TEST_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build_test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-openbsd
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build_test.outcome == 'failure'
+      run: exit 1
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
@@ -200,17 +363,21 @@ jobs:
       run: git config --global --add safe.directory /__w/luakit/luakit
     
     - name: Build and test on NetBSD
+      id: build_test
+      continue-on-error: true
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: netbsd
         version: '10.0'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on NetBSD"
           echo "========================================"
           
           sudo pkgin -y install \
+            ccache \
             git \
             glib2 \
             gmake \
@@ -225,15 +392,53 @@ jobs:
           
           echo ""
           echo "========================================"
+          echo "Setting up ccache"
+          echo "========================================"
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          
+          echo ""
+          echo "========================================"
           echo "Building luakit"
           echo "========================================"
-          gmake -j1
+          gmake -j1 || (echo "BUILD_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
           echo "========================================"
           echo "Running tests"
           echo "========================================"
-          gmake -j1 run-tests
+          gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "$BUILD_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "$TEST_FAILED" = "true" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build_test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-netbsd
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build_test.outcome == 'failure'
+      run: exit 1
 
 
   debian:
@@ -253,12 +458,21 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: apt-debian-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apt-debian-
       
     - name: Install dependencies
       run: |
         apt-get update
         apt-get install -y \
           build-essential \
+          ccache \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -272,10 +486,66 @@ jobs:
           xvfb \
           git
     
-    - name: Built and test
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: debian-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-debian-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-debian-
+    
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-debian
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
 
   arch:
     if: github.event_name == 'workflow_dispatch' && inputs.test_arch
@@ -294,26 +564,92 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache Pacman packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/pacman/pkg
+        key: pacman-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          pacman-
       
     - name: Install dependencies
       run: |
         pacman -S --noconfirm \
           base-devel \
+          ccache \
           dbus \
           git \
           gtk3 \
           lua51-filesystem \
           lua51-socket \
           lua51-luassert \
+          luacheck \
           luajit \
           sqlite \
           webkit2gtk-4.1 \
           xorg-server-xvfb
     
-    - name: Built and test
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: arch-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-arch-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-arch-
+    
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-arch
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
 
   alpine:
     if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
@@ -330,12 +666,24 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache APK packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apk
+        key: apk-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apk-
       
     - name: Install dependencies
       run: |
+        # Ensure community repository is enabled
+        echo "https://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories
+        apk update
         apk add --no-cache \
           bash \
           build-base \
+          ccache \
           dbus \
           git \
           glib-dev \
@@ -343,15 +691,72 @@ jobs:
           lua5.1-filesystem \
           lua5.1-socket \
           lua5.1-busted \
+          luacheck \
           luajit-dev \
           sqlite-dev \
           webkit2gtk-4.1-dev \
           xvfb-run
     
-    - name: Built and test
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: alpine-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-alpine-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-alpine-
+    
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        xvfb-run -a make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: xvfb-run -a make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-alpine
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
 
   void:
     if: github.event_name == 'workflow_dispatch' && inputs.test_void
@@ -371,6 +776,14 @@ jobs:
 
     - name: Update container packages
       run: xbps-install -Syu
+    
+    - name: Cache xbps packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/xbps
+        key: xbps-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          xbps-
       
     - name: Install dependencies
       run: |
@@ -378,6 +791,7 @@ jobs:
           LuaJIT \
           LuaJIT-devel \
           base-devel \
+          ccache \
           glib-devel \
           gtk+3-devel \
           libwebkit2gtk41-devel \
@@ -387,12 +801,78 @@ jobs:
           pkg-config \
           sqlite-devel \
           xorg-server-xvfb
+        luarocks install luasay
         luarocks install luassert
+        luarocks install luacheck
+    
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: void-ccache
+        max-size: 500M
+    
+    - name: Cache luarocks
+      uses: actions/cache@v4
+      with:
+        path: ~/.luarocks
+        key: luarocks-void-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          luarocks-void-
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-void-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-void-
 
-    - name: Built and test
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-void
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
 
   gentoo:
     if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
@@ -411,13 +891,32 @@ jobs:
         echo "net-libs/webkit-gtk X" >> /etc/portage/package.use/webkit-gtk
         emerge --sync || emerge-webrsync
         emerge --getbinpkg --ask=n dev-vcs/git
-    
+
     - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
-      
+    
+    - name: Cache binary packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/binpkgs
+        key: gentoo-binpkgs-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          gentoo-binpkgs-
+    
+    - name: Cache distfiles
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/distfiles
+        key: gentoo-distfiles-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          gentoo-distfiles-
+    
+    - name: Install ccache
+      run: emerge --update --newuse --deep ccache
+
     - name: Install dependencies
       run: |
         emerge --getbinpkg --ask=n \
@@ -426,12 +925,69 @@ jobs:
           dev-libs/glib \
           dev-lua/luafilesystem \
           dev-lua/luasocket \
+          dev-util/ccache \
           net-libs/webkit-gtk:4.1 \
           sys-apps/dbus \
           x11-base/xorg-server \
           x11-libs/gtk+:3
     
-    - name: Built and test
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: gentoo-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-gentoo-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-gentoo-
+    
+    - name: Build
+      id: build
+      continue-on-error: true
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
-        make -j1 run-tests
+    
+    - name: Test
+      id: test
+      continue-on-error: true
+      if: steps.build.outcome == 'success'
+      run: make -j1 run-tests
+    
+    - name: Show ccache statistics
+      if: always()
+      run: ccache -s
+    
+    - name: Generate badge JSON
+      if: always()
+      run: |
+        if [ "${{ steps.build.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"failed","color":"red"}' > badge.json
+        elif [ "${{ steps.test.outcome }}" = "failure" ]; then
+          echo '{"schemaVersion":1,"label":"tests","message":"failed","color":"orange"}' > badge.json
+        elif [ "${{ steps.build.outcome }}" = "success" ] && [ "${{ steps.test.outcome }}" = "success" ]; then
+          echo '{"schemaVersion":1,"label":"build","message":"passing","color":"green"}' > badge.json
+        else
+          echo '{"schemaVersion":1,"label":"build","message":"unknown","color":"lightgrey"}' > badge.json
+        fi
+        cat badge.json
+    
+    - name: Upload badge
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: badge-gentoo
+        path: badge.json
+    
+    - name: Fail job if build or test failed
+      if: steps.build.outcome == 'failure' || steps.test.outcome == 'failure'
+      run: exit 1
