@@ -273,6 +273,7 @@ jobs:
           gtk+3-devel \
           webkit2gtk-devel \
           glib-devel \
+          sqlite-devel \
           lua51-filesystem \
           lua51-socket \
           xorg-server-xvfb \
