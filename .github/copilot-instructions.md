@@ -1,6 +1,25 @@
-# GitHub Copilot Instructions for Luakit Development
+# Luakit AI Instructions
 
 This document provides instructions for AI assistants working on the Luakit codebase.
+
+## Core Principles
+
+**KISS - Keep It Simple, Stupid**
+- Make small, focused changes
+- Each change should do one thing well
+- High quality over quantity
+- Always handle errors properly
+
+**Compatibility Requirements**
+- Luakit supports many Linux distributions and BSDs
+- Scripts and code must work across different platforms
+- Don't assume GNU-specific tools or syntax
+- Test compatibility when using shell commands (sed, awk, etc.)
+
+**Lua Compatibility**
+- Luakit works with both Lua 5.1 and LuaJIT
+- Maintain compatibility with both implementations
+- Don't use features exclusive to Lua 5.2+ or LuaJIT-only APIs
 
 ## Workflow Preferences
 
