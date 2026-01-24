@@ -92,7 +92,7 @@ jobs:
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: freebsd
-        version: '14.2'
+        version: '14.1'
         shell: bash
         run: |
           sudo pkg install -y \
@@ -131,7 +131,7 @@ jobs:
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: openbsd
-        version: '7.6'
+        version: '7.5'
         shell: bash
         run: |
           sudo pkg_add \
@@ -261,6 +261,7 @@ jobs:
           gtk3 \
           lua51-filesystem \
           lua51-socket \
+          lua51-luassert \
           luajit \
           sqlite \
           webkit2gtk-4.1 \
@@ -299,6 +300,7 @@ jobs:
           gtk+3.0-dev \
           lua5.1-filesystem \
           lua5.1-socket \
+          lua5.1-busted \
           luajit-dev \
           sqlite-dev \
           webkit2gtk-4.1-dev \
@@ -332,10 +334,9 @@ jobs:
           LuaJIT-devel \
           base-devel \
           dbus \
-          git \
           glib-devel \
           gtk+3-devel \
-          lua51-filesystem \
+          lua-filesystem \
           lua51-socket \
           sqlite-devel \
           webkit2gtk-devel \
