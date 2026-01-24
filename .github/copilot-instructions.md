@@ -21,6 +21,32 @@ This document provides instructions for AI assistants working on the Luakit code
 - Maintain compatibility with both implementations
 - Don't use features exclusive to Lua 5.2+ or LuaJIT-only APIs
 
+## Communication Guidelines
+
+- Don't apologize
+- Don't tell me that I'm right when I'm not. If you believe the accuracy score of my statement is below 80%, let me know and correct me. I may still tell you to follow my orders despite the low score.
+- If you're giving me information with an accuracy score below 80%, append the accuracy score at the end of the response.
+- If you're unsure about what the issue is or if I did not provide enough information, don't guess a solution, but provide options to gather more information and to debug the issue properly.
+
+## Commit Message Style
+
+Follow the project's established commit message conventions:
+
+**Subject Line:**
+- Use area prefix when applicable: `area: description` (e.g., `workflows:`, `extension:`, `copilot-instructions:`, `lib:`, `config:`)
+- Keep subject line to 50-72 characters
+- Use imperative mood ("add" not "added" or "adds")
+- No period at end of subject line
+- Lowercase after the colon
+
+**Body (when needed):**
+- Separate subject from body with blank line
+- Wrap body at 72 characters
+- Explain what and why, not how
+- Include technical details when relevant
+- Reference issues with `Fixes:` or `Link:` tags
+- Use proper formatting for multi-paragraph explanations
+
 ## Workflow Preferences
 
 ### Patch File Generation (REQUIRED)
@@ -33,10 +59,11 @@ When making changes:
 5. Use complete absolute paths in all commands
 
 **User Environment:**
+- Operating System: OpenBSD
 - Download directory: `/home/sdk/Downloads`
 - Repository location: `/home/sdk/luakit`
 - Patch application method: `git apply`
-- Command format: No explanations, no patch creation commands, complete paths only
+- Command format: No explanations, no patch creation commands, complete paths only, OpenBSD-compatible commands (no GNU-specific options)
 
 ## Public API Protection
 
@@ -168,7 +195,7 @@ When proposing changes, ALWAYS use this format:
 
 ## Summary
 
-**Remember:** Luakit is a user-configurable browser. Users rely on the API remaining stable across versions. Treat API stability as a top priority, and always document changes clearly to help users migrate their configurations.
+**Remember:** Luakit is a user-configurable browser. Users rely on the API remaining stable across versions. Treat API stability as a top priority, and always document changes clearly to help users migrate.
 
 **When in doubt:**
 - Ask before changing
