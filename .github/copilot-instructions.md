@@ -185,6 +185,22 @@ When proposing changes, ALWAYS use this format:
     applying patch: skipped -> <commit_id_of_already_applied_patch>
     removing myself: rm -f /home/sdk/Downloads/*.{sh,patch} (if no errors above)
 
+### Important: Patch Delivery Methods
+
+When creating patch scripts:
+
+- **Avoid complex pre-checks**: Don't use `git diff --quiet` to determine if a patch needs applying. This can cause false positives and skip patches that haven't been applied yet.
+  Instead, simply attempt `git apply` directly and handle success/failure.
+
+- **Use base64 encoding for patch content**: When embedding patches in heredocs, use base64 encoding to avoid:
+  - Markdown rendering conflicts (backticks, code blocks)
+  - Heredoc escaping issues
+  - Special character problems
+
+  Example: `base64 -d > "${DOWNLOADS}/${PATCH_NAME}" << 'PATCH_EOF'`
+
+  - **Especially important** for .github/copilot-instructions.md, which contains markdown code blocks.
+
 **Do NOT:**
 - Create pull requests
 - Use relative paths
