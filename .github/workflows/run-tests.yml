@@ -89,9 +89,9 @@ jobs:
             pkgconf \
             luajit \
             gtk3 \
-            webkit2-gtk4 \
+            webkit2-gtk \
             libsoup3 \
-            glib2 \
+            glib20 \
             lua51-luafilesystem \
             lua51-luasocket \
             sqlite3 \
@@ -101,7 +101,7 @@ jobs:
             pkgconf \
             luajit \
             gtk3 \
-            webkit2-gtk3 \
+            webkit2-gtk \
             lua51-luafilesystem \
             lua51-luasocket \
             xorg-vfbserver \
