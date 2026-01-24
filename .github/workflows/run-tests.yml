@@ -60,20 +60,17 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
-          dbus-x11 \
-          git \
-          libglib2.0-dev \
-          libgtk-3-dev \
-          libjavascriptcoregtk-4.1-dev \
-          libluajit-5.1-dev \
-          libwebkit2gtk-4.1-dev \
-          lua-check \
-          lua51-luafilesystem \
-          lua-luassert \
-          lua-socket \
           luajit \
-          xauth \
-          xvfb
+          libluajit-5.1-dev \
+          libjavascriptcoregtk-4.1-dev \
+          libwebkit2gtk-4.1-dev \
+          libgtk-3-dev \
+          libglib2.0-dev \
+          lua-check \
+          lua-luassert \
+          lua-filesystem \
+          lua-socket \
+          git
     
     - name: Built and test
       run: |
@@ -246,21 +243,17 @@ jobs:
       run: |
         apt-get update
         apt-get install -y \
-          build-essential \
-          dbus-x11 \
-          git \
-          libglib2.0-dev \
-          libgtk-3-dev \
-          libjavascriptcoregtk-4.1-dev \
-          libluajit-5.1-dev \
-          libwebkit2gtk-4.1-dev \
-          lua-check \
-          lua51-luafilesystem \
-          lua-luassert \
-          lua-socket \
           luajit \
-          xauth \
-          xvfb
+          libluajit-5.1-dev \
+          libjavascriptcoregtk-4.1-dev \
+          libwebkit2gtk-4.1-dev \
+          libgtk-3-dev \
+          libglib2.0-dev \
+          lua-check \
+          lua-luassert \
+          lua-filesystem \
+          lua-socket \
+          git
     
     - name: Built and test
       run: |
@@ -294,7 +287,7 @@ jobs:
           gtk3 \
           lua51-filesystem \
           lua51-socket \
-          lua51-luassert \
+          luassert \
           luajit \
           sqlite \
           webkit2gtk-4.1 \
