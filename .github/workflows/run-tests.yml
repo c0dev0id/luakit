@@ -112,6 +112,7 @@ jobs:
             luajit \
             sqlite3 \
             webkit2-gtk_41 \
+            pkgconf \
             xorg-vfbserver
           
           echo ""
