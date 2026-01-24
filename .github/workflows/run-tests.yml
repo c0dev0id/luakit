@@ -88,6 +88,7 @@ jobs:
           sudo pkg install -y \
             dbus \
             git \
+            glib \
             gmake \
             gtk3 \
             libsoup3 \
