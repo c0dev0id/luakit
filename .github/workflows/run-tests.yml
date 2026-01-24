@@ -92,13 +92,17 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
     
-    - name: Test on FreeBSD
+    - name: Build and test on FreeBSD
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: freebsd
         version: '14.0'
         shell: bash
         run: |
+          echo "========================================"
+          echo "Installing dependencies on FreeBSD"
+          echo "========================================"
+          
           sudo pkg install -y \
             dbus \
             git \
@@ -112,11 +116,18 @@ jobs:
             sqlite3 \
             webkit2-gtk_41 \
             xorg-vfbserver
-
-    - name: Built and test
-      run: |
-        gmake -j1
-        xvfb-run -a gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "Building luakit"
+          echo "========================================"
+          gmake -j1
+          
+          echo ""
+          echo "========================================"
+          echo "Running tests"
+          echo "========================================"
+          xvfb-run -a gmake -j1 run-tests
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -130,13 +141,17 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
     
-    - name: Test on OpenBSD
+    - name: Build and test on OpenBSD
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: openbsd
         version: '7.5'
         shell: bash
         run: |
+          echo "========================================"
+          echo "Installing dependencies on OpenBSD"
+          echo "========================================"
+          
           sudo pkg_add \
             git \
             glib2 \
@@ -149,11 +164,18 @@ jobs:
             sqlite3 \
             webkit \
             webkitgtk41
-
-    - name: Built and test
-      run: |
-        gmake -j1
-        xvfb-run -a gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "Building luakit"
+          echo "========================================"
+          gmake -j1
+          
+          echo ""
+          echo "========================================"
+          echo "Running tests"
+          echo "========================================"
+          xvfb-run -a gmake -j1 run-tests
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
@@ -167,13 +189,17 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
     
-    - name: Test on NetBSD
+    - name: Build and test on NetBSD
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: netbsd
         version: '10.0'
         shell: bash
         run: |
+          echo "========================================"
+          echo "Installing dependencies on NetBSD"
+          echo "========================================"
+          
           sudo pkgin -y install \
             git \
             glib2 \
@@ -184,11 +210,18 @@ jobs:
             luajit \
             sqlite3 \
             webkit-gtk
-
-    - name: Built and test
-      run: |
-        gmake -j1
-        xvfb-run -a gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "Building luakit"
+          echo "========================================"
+          gmake -j1
+          
+          echo ""
+          echo "========================================"
+          echo "Running tests"
+          echo "========================================"
+          xvfb-run -a gmake -j1 run-tests
 
 
   debian:
