@@ -29,11 +29,7 @@ jobs:
           xvfb \
           xauth \
           dbus-x11 \
-          lua-busted \
-          lua5.1-luassert
-          lua-busted \
-          lua5.1-luassert
-          lua-busted \
+          busted \
           lua5.1-luassert
     
     - name: Build luakit
