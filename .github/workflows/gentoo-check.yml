@@ -1,4 +1,4 @@
-name: Gentoo Check
+name: Test Gentoo
 
 on:
   workflow_dispatch:
@@ -22,15 +22,14 @@ jobs:
     - name: Install dependencies
       run: |
         emerge --ask=n \
+          dev-lang/luajit \
           x11-libs/gtk+:3 \
           net-libs/webkit-gtk:4.1 \
-          dev-db/sqlite \
-          dev-lang/lua:5.1 \
-          dev-lang/luajit \
+          dev-libs/glib \
           dev-lua/luafilesystem \
+          dev-lua/luasocket \
           x11-base/xorg-server \
-          sys-apps/dbus \
-          dev-lua/busted
+          sys-apps/dbus
     
     - name: Build luakit
       run: make

@@ -1,4 +1,4 @@
-name: BSD Check
+name: Test FreeBSD, OpenBSD
 
 on:
   workflow_dispatch:
@@ -22,15 +22,13 @@ jobs:
           sudo pkg install -y \
             gmake \
             pkgconf \
+            luajit \
             gtk3 \
             webkit2-gtk3 \
-            sqlite3 \
-            lua51 \
-            luajit \
             lua51-luafilesystem \
+            lua51-luasocket \
             xorg-vfbserver \
-            dbus \
-            hs-lua-busted
+            dbus
           gmake
           xvfb-run -a gmake run-tests
 
@@ -51,11 +49,10 @@ jobs:
         run: |
           sudo pkg_add \
             gmake \
+            luajit \
             gtk+3 \
             webkit \
-            sqlite3 \
-            lua-5.1 \
-            luajit \
-            luafilesystem
+            luafilesystem \
+            lua-socket
           gmake
           gmake run-tests || echo "Tests may require X11 setup on OpenBSD"
