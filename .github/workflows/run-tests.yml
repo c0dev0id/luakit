@@ -95,7 +95,7 @@ jobs:
             lua51-luasocket \
             luajit \
             sqlite3 \
-            webkit2-gtk \
+            webkit2-gtk_41 \
             xorg-vfbserver
 
   openbsd:
