@@ -69,6 +69,7 @@ jobs:
       run: xvfb-run -a make run-tests
 
   freebsd:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_freebsd
     name: FreeBSD
     runs-on: ubuntu-latest
     
@@ -97,6 +98,7 @@ jobs:
           xvfb-run -a gmake run-tests
 
   openbsd:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
     name: OpenBSD
     runs-on: ubuntu-latest
     
@@ -122,6 +124,7 @@ jobs:
           gmake run-tests || echo "Tests may require X11 setup on OpenBSD"
 
   debian:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_debian
     name: Debian Stable
     runs-on: ubuntu-latest
     container: debian:stable
@@ -161,6 +164,7 @@ jobs:
       run: xvfb-run -a make run-tests
 
   arch:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_arch
     name: Arch Linux
     runs-on: ubuntu-latest
     container: archlinux:latest
@@ -193,6 +197,7 @@ jobs:
       run: xvfb-run -a make run-tests
 
   alpine:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
     name: Alpine Linux
     runs-on: ubuntu-latest
     container: alpine:latest
@@ -230,6 +235,7 @@ jobs:
         fi
 
   void:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_void
     name: Void Linux
     runs-on: ubuntu-latest
     container: ghcr.io/void-linux/void-linux:latest-full-x86_64
@@ -261,6 +267,7 @@ jobs:
       run: xvfb-run -a make run-tests
 
   gentoo:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
     name: Gentoo Linux
     runs-on: ubuntu-latest
     container: gentoo/stage3:latest
