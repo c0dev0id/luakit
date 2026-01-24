@@ -152,12 +152,12 @@ When proposing changes, ALWAYS use this format:
 - the script file checks if the patch has already been applied, if so, skip patch
 - example output (stdout) of the script file:
   ```
-  removing old version: rm -f /home/sdk/Downloads/luakit_fix_bug123.patch (if exists)
+  removing old version: rm -f /home/sdk/Downloads/*.{sh,patch}
   creating patch: luakit_fix_bug123.patch (relative to /home/sdk/Downloads)
   creating directory: path/to/modified/file (relative to /home/sdk/luakit)
   applying patch: done -> <commit_id>
   applying patch: skipped -> <commit_id_of_already_applied_patch>
-  removing myself: rm -f /home/sdk/Downloads/luakit_fix_bug123.sh (if there was no error above)
+  removing myself: rm -f /home/sdk/Downloads/*.{sh,patch} (if no errors above)
   ```
 
 **Do NOT:**
