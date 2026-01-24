@@ -217,6 +217,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
+      
     - name: Install dependencies
       run: |
         apk add --no-cache \
