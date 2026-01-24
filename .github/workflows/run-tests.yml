@@ -363,8 +363,10 @@ jobs:
     - name: Setup binary packages and install git
       run: |
         # Enable binary packages
-        mkdir -p /etc/portage/binrepos.conf
+        mkdir -p /etc/portage/binrepos.conf /etc/portage/package.use
         echo -e "[gentoobinhost]\npriority = 9999\nsync-uri = https://distfiles.gentoo.org/releases/amd64/binpackages/17.1/x86-64/" > /etc/portage/binrepos.conf/gentoobinhost.conf
+        # Enable X USE flag for webkit-gtk
+        echo "net-libs/webkit-gtk X" >> /etc/portage/package.use/webkit-gtk
         emerge --sync || emerge-webrsync
         emerge --getbinpkg --ask=n dev-vcs/git
     
