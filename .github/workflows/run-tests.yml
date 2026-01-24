@@ -127,11 +127,17 @@ jobs:
             gmake \
             luajit \
             gtk+3 \
+            webkitgtk41 \
+            sqlite3 \
+            glib2 \
+            luafilesystem \
+            luasocket
+            gmake \
+            luajit \
+            gtk+3 \
             webkit \
             luafilesystem \
             lua-socket
-          gmake
-          gmake run-tests || echo "Tests may require X11 setup on OpenBSD"
 
   debian:
     if: github.event_name == 'workflow_dispatch' && inputs.test_debian
