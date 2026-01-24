@@ -82,7 +82,6 @@ jobs:
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: freebsd
-        version: '14.0'
         shell: bash
         run: |
           sudo pkg install -y \
@@ -99,6 +98,12 @@ jobs:
             webkit2-gtk_41 \
             xorg-vfbserver
 
+    - name: Build luakit
+      run: gmake
+    
+    - name: Run tests
+      run: xvfb-run -a gmake run-tests
+
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
     name: OpenBSD
@@ -112,7 +117,6 @@ jobs:
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: openbsd
-        version: '7.4'
         shell: bash
         run: |
           sudo pkg_add \
@@ -127,6 +131,12 @@ jobs:
             sqlite3 \
             webkit \
             webkitgtk41
+
+    - name: Build luakit
+      run: gmake
+    
+    - name: Run tests
+      run: xvfb-run -a gmake run-tests
 
   debian:
     if: github.event_name == 'workflow_dispatch' && inputs.test_debian
