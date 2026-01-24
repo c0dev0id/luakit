@@ -48,20 +48,20 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          dbus-x11 \
           git \
-          luajit \
-          libluajit-5.1-dev \
-          libjavascriptcoregtk-4.1-dev \
-          libwebkit2gtk-4.1-dev \
-          libgtk-3-dev \
           libglib2.0-dev \
+          libgtk-3-dev \
+          libjavascriptcoregtk-4.1-dev \
+          libluajit-5.1-dev \
+          libwebkit2gtk-4.1-dev \
           lua-check \
-          lua-luassert \
           lua-filesystem \
+          lua-luassert \
           lua-socket \
-          xvfb \
+          luajit \
           xauth \
-          dbus-x11
+          xvfb
     
     - name: Build luakit
       run: make
@@ -86,29 +86,17 @@ jobs:
         shell: bash
         run: |
           sudo pkg install -y \
+            dbus \
             git \
             gmake \
-            pkgconf \
-            luajit \
             gtk3 \
-            webkit2-gtk \
             libsoup3 \
-            glib20 \
             lua51-luafilesystem \
             lua51-luasocket \
-            sqlite3 \
-            xorg-vfbserver \
-            dbus
-            git \
-            gmake \
-            pkgconf \
             luajit \
-            gtk3 \
+            sqlite3 \
             webkit2-gtk \
-            lua51-luafilesystem \
-            lua51-luasocket \
-            xorg-vfbserver \
-            dbus
+            xorg-vfbserver
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -128,21 +116,16 @@ jobs:
         run: |
           sudo pkg_add \
             git \
-            gmake \
-            luajit \
-            gtk+3 \
-            webkitgtk41 \
-            sqlite3 \
             glib2 \
-            luafilesystem \
-            git \
-            luasocket
             gmake \
-            luajit \
             gtk+3 \
-            webkit \
-            luafilesystem \
             lua-socket
+            luafilesystem \
+            luajit \
+            luasocket
+            sqlite3 \
+            webkit \
+            webkitgtk41
 
   debian:
     if: github.event_name == 'workflow_dispatch' && inputs.test_debian
@@ -163,21 +146,21 @@ jobs:
       run: |
         apt-get update
         apt-get install -y \
-          git \
           build-essential \
-          luajit \
-          libluajit-5.1-dev \
-          libjavascriptcoregtk-4.1-dev \
-          libwebkit2gtk-4.1-dev \
-          libgtk-3-dev \
+          dbus-x11 \
+          git \
           libglib2.0-dev \
+          libgtk-3-dev \
+          libjavascriptcoregtk-4.1-dev \
+          libluajit-5.1-dev \
+          libwebkit2gtk-4.1-dev \
           lua-check \
-          lua-luassert \
           lua-filesystem \
+          lua-luassert \
           lua-socket \
-          xvfb \
+          luajit \
           xauth \
-          dbus-x11
+          xvfb
     
     - name: Build luakit
       run: make
@@ -204,15 +187,15 @@ jobs:
       run: |
         pacman -S --noconfirm \
           base-devel \
+          dbus \
           git \
-          luajit \
           gtk3 \
-          webkit2gtk-4.1 \
-          sqlite \
           lua51-filesystem \
           lua51-socket \
-          xorg-server-xvfb \
-          dbus
+          luajit \
+          sqlite \
+          webkit2gtk-4.1 \
+          xorg-server-xvfb
     
     - name: Build luakit
       run: make
@@ -236,18 +219,18 @@ jobs:
     - name: Install dependencies
       run: |
         apk add --no-cache \
+          bash \
           build-base \
+          dbus \
           git \
-          luajit-dev \
-          gtk+3.0-dev \
-          webkit2gtk-4.1-dev \
           glib-dev \
-          sqlite-dev \
+          gtk+3.0-dev \
           lua5.1-filesystem \
           lua5.1-socket \
-          xvfb-run \
-          dbus \
-          bash
+          luajit-dev \
+          sqlite-dev \
+          webkit2gtk-4.1-dev \
+          xvfb-run
     
     - name: Build luakit
       run: make
@@ -276,17 +259,17 @@ jobs:
     - name: Install dependencies
       run: |
         xbps-install -Sy \
-          base-devel \
-          git \
           LuaJIT-devel \
-          gtk+3-devel \
-          webkit2gtk-devel \
+          base-devel \
+          dbus \
+          git \
           glib-devel \
-          sqlite-devel \
+          gtk+3-devel \
           lua51-filesystem \
           lua51-socket \
-          xorg-server-xvfb \
-          dbus
+          sqlite-devel \
+          webkit2gtk-devel \
+          xorg-server-xvfb
     
     - name: Build luakit
       run: make
@@ -316,15 +299,15 @@ jobs:
     - name: Install dependencies
       run: |
         emerge --ask=n \
-          dev-lang/luajit \
-          x11-libs/gtk+:3 \
-          net-libs/webkit-gtk:4.1 \
-          dev-libs/glib \
           dev-db/sqlite \
+          dev-lang/luajit \
+          dev-libs/glib \
           dev-lua/luafilesystem \
           dev-lua/luasocket \
+          net-libs/webkit-gtk:4.1 \
+          sys-apps/dbus \
           x11-base/xorg-server \
-          sys-apps/dbus
+          x11-libs/gtk+:3
     
     - name: Build luakit
       run: make
