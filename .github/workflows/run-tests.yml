@@ -35,6 +35,10 @@ on:
         description: 'Test on OpenBSD'
         type: boolean
         default: false
+      test_netbsd:
+        description: 'Test on NetBSD'
+        type: boolean
+        default: false
 jobs:
   ubuntu:
     name: Ubuntu
@@ -43,6 +47,9 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
       
     - name: Install dependencies
       run: |
@@ -78,10 +85,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
+    
     - name: Test on FreeBSD
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: freebsd
+        version: '15.0'
         shell: bash
         run: |
           sudo pkg install -y \
@@ -113,10 +124,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
+    
     - name: Test on OpenBSD
       uses: cross-platform-actions/action@v0.24.0
       with:
         operating_system: openbsd
+        version: '7.8'
         shell: bash
         run: |
           sudo pkg_add \
@@ -138,6 +153,43 @@ jobs:
     - name: Run tests
       run: xvfb-run -a gmake run-tests
 
+  netbsd:
+    if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
+    name: NetBSD
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Test on NetBSD
+      uses: cross-platform-actions/action@v0.24.0
+      with:
+        operating_system: netbsd
+        version: '10.1'
+        shell: bash
+        run: |
+          sudo pkgin -y install \
+            git \
+            glib2 \
+            gmake \
+            gtk3+ \
+            lua51-filesystem \
+            lua-socket \
+            luajit \
+            sqlite3 \
+            webkit-gtk
+
+    - name: Build luakit
+      run: gmake
+    
+    - name: Run tests
+      run: xvfb-run -a gmake run-tests
+
+
   debian:
     if: github.event_name == 'workflow_dispatch' && inputs.test_debian
     name: Debian Stable
@@ -152,6 +204,9 @@ jobs:
     
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
       
     - name: Install dependencies
       run: |
@@ -193,6 +248,9 @@ jobs:
     
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
       
     - name: Install dependencies
       run: |
@@ -269,6 +327,9 @@ jobs:
     
     - name: Checkout code
       uses: actions/checkout@v4
+      
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
       
     - name: Install dependencies
       run: |
