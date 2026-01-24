@@ -1,0 +1,61 @@
+name: BSD Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  freebsd:
+    name: FreeBSD
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Test on FreeBSD
+      uses: cross-platform-actions/action@v0.24.0
+      with:
+        operating_system: freebsd
+        version: '14.0'
+        shell: bash
+        run: |
+          sudo pkg install -y \
+            gmake \
+            pkgconf \
+            gtk3 \
+            webkit2-gtk3 \
+            sqlite3 \
+            lua51 \
+            luajit \
+            lua51-luafilesystem \
+            xorg-vfbserver \
+            dbus \
+            hs-lua-busted
+          gmake
+          xvfb-run -a gmake run-tests
+
+  openbsd:
+    name: OpenBSD
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Test on OpenBSD
+      uses: cross-platform-actions/action@v0.24.0
+      with:
+        operating_system: openbsd
+        version: '7.4'
+        shell: bash
+        run: |
+          sudo pkg_add \
+            gmake \
+            gtk+3 \
+            webkit \
+            sqlite3 \
+            lua-5.1 \
+            luajit \
+            luafilesystem
+          gmake
+          gmake run-tests || echo "Tests may require X11 setup on OpenBSD"

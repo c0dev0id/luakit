@@ -1,0 +1,43 @@
+name: Gentoo Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  gentoo:
+    name: Gentoo Linux
+    runs-on: ubuntu-latest
+    container: gentoo/stage3:latest
+    timeout-minutes: 120
+    
+    steps:
+    - name: Sync Portage and install git
+      run: |
+        emerge-webrsync
+        emerge --ask=n dev-vcs/git
+    
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: |
+        emerge --ask=n \
+          x11-libs/gtk+:3 \
+          net-libs/webkit-gtk:4.1 \
+          dev-db/sqlite \
+          dev-lang/lua:5.1 \
+          dev-lang/luajit \
+          dev-lua/luafilesystem \
+          x11-base/xorg-server \
+          sys-apps/dbus \
+          dev-lua/busted
+    
+    - name: Build luakit
+      run: make
+    
+    - name: Run tests
+      run: |
+        Xvfb :99 -screen 0 1024x768x24 &
+        export DISPLAY=:99
+        sleep 2
+        make run-tests
