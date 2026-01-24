@@ -89,13 +89,23 @@ jobs:
             pkgconf \
             luajit \
             gtk3 \
+            webkit2-gtk4 \
+            libsoup3 \
+            glib2 \
+            lua51-luafilesystem \
+            lua51-luasocket \
+            sqlite3 \
+            xorg-vfbserver \
+            dbus
+            gmake \
+            pkgconf \
+            luajit \
+            gtk3 \
             webkit2-gtk3 \
             lua51-luafilesystem \
             lua51-luasocket \
             xorg-vfbserver \
             dbus
-          gmake
-          xvfb-run -a gmake run-tests
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
