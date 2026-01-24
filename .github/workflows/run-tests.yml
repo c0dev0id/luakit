@@ -5,7 +5,36 @@ on:
     branches: [ "**" ]
   pull_request:
     branches: [ "**" ]
-
+  workflow_dispatch:
+    inputs:
+      test_debian:
+        description: 'Test on Debian'
+        type: boolean
+        default: false
+      test_arch:
+        description: 'Test on Arch Linux'
+        type: boolean
+        default: false
+      test_alpine:
+        description: 'Test on Alpine Linux'
+        type: boolean
+        default: false
+      test_void:
+        description: 'Test on Void Linux'
+        type: boolean
+        default: false
+      test_gentoo:
+        description: 'Test on Gentoo Linux'
+        type: boolean
+        default: false
+      test_freebsd:
+        description: 'Test on FreeBSD'
+        type: boolean
+        default: false
+      test_openbsd:
+        description: 'Test on OpenBSD'
+        type: boolean
+        default: false
 jobs:
   ubuntu:
     name: Ubuntu
