@@ -169,7 +169,7 @@ jobs:
             gmake \
             gtk+3 \
             luafs \
-            lua-socket \
+            luasocket \
             luassert \
             luajit \
             sqlite3 \
