@@ -16,8 +16,7 @@ local ui = ipc_channel("select_wm")
 
 -- Debug logging for diagnosing follow mode issues
 local function debug_log(fmt, ...)
-    local msg = string.format(fmt, ...)
-    io.stderr:write("[select_wm] " .. msg .. "\n")
+    msg.warn("[select_wm] " .. string.format(fmt, ...))
 end
 
 -- Label making
