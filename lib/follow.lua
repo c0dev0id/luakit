@@ -307,6 +307,7 @@ new_mode("follow", {
         -- Cut func out of mode, since we can't send functions
         local func = mode.func
         mode.func = nil
+        msg.warn("[follow] emitting 'enter' signal to web module, selector=%s", mode.selector)
         follow_wm:emit_signal(w.view, "enter", mode, _M.ignore_case)
         mode.func = func
     end,

@@ -112,10 +112,18 @@ ui:add_signal("focus", function(_, page, step)
 end)
 
 ui:add_signal("enter", function(_, page, mode, ignore_case)
+    msg.warn("[follow_wm] received 'enter' signal, selector=%s", mode.selector)
     page_mode[page] = mode
-    select.enter(page, mode.selector, mode.stylesheet, ignore_case)
+    local ok, err = pcall(function()
+        select.enter(page, mode.selector, mode.stylesheet, ignore_case)
+    end)
+    if not ok then
+        msg.error("[follow_wm] select.enter failed: %s", tostring(err))
+        return
+    end
 
     local num_visible_hints = #(select.hints(page))
+    msg.warn("[follow_wm] hints found: %d", num_visible_hints)
     ui:emit_signal("matches", page.id, num_visible_hints)
 end)
 
