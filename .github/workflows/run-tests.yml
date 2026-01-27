@@ -766,8 +766,8 @@ jobs:
       run: exit 1
 
   void:
-    if: github.event_name != 'workflow_dispatch' || inputs.test_void
-    name: Void Linux
+    if: github.event_name == 'workflow_dispatch' && inputs.test_void
+    name: Void Linux (no luassert)
     runs-on: ubuntu-latest
     container: ghcr.io/void-linux/void-linux:latest-full-x86_64
     
@@ -815,23 +815,23 @@ jobs:
         echo "========================================"
         # Install say dependency
         git clone --depth 1 https://github.com/Olivine-Labs/say.git /tmp/say || exit 1
-        mkdir -p /usr/local/share/lua/5.1/say
-        cp -R /tmp/say/src/say/ /usr/local/share/lua/5.1/say/ || exit 1
+        mkdir -p /usr/share/lua/5.1/say
+        cp -R /tmp/say/src/say/ /usr/share/lua/5.1/say/ || exit 1
 
         # Install luassert
         git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert || exit 1
-        mkdir -p /usr/local/share/lua/5.1/luassert 
-        cp -R /tmp/luassert/src/ /usr/local/share/lua/5.1/luassert/ || exit 1
+        mkdir -p /usr/share/lua/5.1/luassert 
+        cp -R /tmp/luassert/src/ /usr/share/lua/5.1/luassert/ || exit 1
         
         # Install luacheck
         git clone --depth 1 https://github.com/mpeterv/luacheck.git /tmp/luacheck || exit 1
-        mkdir -p /usr/local/share/lua/5.1/luacheck 
-        cp -R /tmp/luacheck/src/luacheck/ /usr/local/share/lua/5.1/luacheck/ || exit 1
+        mkdir -p /usr/share/lua/5.1/luacheck 
+        cp -R /tmp/luacheck/src/luacheck/ /usr/share/lua/5.1/luacheck/ || exit 1
         
         # Copy 'luacheck' to a location in your PATH
-        cp -R /tmp/luacheck/bin/luacheck.lua /usr/local/bin/luacheck
-        sed -i.bak 's,#!/usr/bin/env lua$,#!/usr/bin/env lua51,' /usr/local/bin/luacheck
-        chmod +x /usr/local/bin/luacheck
+        cp -R /tmp/luacheck/bin/luacheck.lua /usr/bin/luacheck
+        sed -i.bak 's,#!/usr/bin/env lua$,#!/usr/bin/env lua5.1,' /usr/bin/luacheck
+        chmod +x /usr/bin/luacheck
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
