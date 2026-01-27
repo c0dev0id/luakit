@@ -802,7 +802,6 @@ jobs:
           glib-devel \
           gtk+3-devel \
           libwebkit2gtk41-devel \
-
           lua51 \
           lua51-luafilesystem \
           lua51-luasocket \
@@ -831,6 +830,7 @@ jobs:
         
         # Copy 'luacheck' to a location in your PATH
         cp -R /tmp/luacheck/bin/luacheck.lua /usr/local/bin/luacheck
+        sed -i.bak 's,#!/usr/bin/env lua$,#!/usr/bin/env lua51,' /usr/local/bin/luacheck
         chmod +x /usr/local/bin/luacheck
     
     - name: Setup ccache
