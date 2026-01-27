@@ -409,6 +409,7 @@ jobs:
           lua51-filesystem \
           lua51-socket \
           lua51-luassert \
+          luacheck \
           luajit \
           sqlite \
           webkit2gtk-4.1 \
@@ -466,6 +467,9 @@ jobs:
       
     - name: Install dependencies
       run: |
+        # Ensure community repository is enabled
+        echo "https://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories
+        apk update
         apk add --no-cache \
           bash \
           build-base \
@@ -477,6 +481,7 @@ jobs:
           lua5.1-filesystem \
           lua5.1-socket \
           lua5.1-busted \
+          luacheck \
           luajit-dev \
           sqlite-dev \
           webkit2gtk-4.1-dev \
