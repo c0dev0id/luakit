@@ -14,6 +14,12 @@ local _M = {}
 
 local ui = ipc_channel("select_wm")
 
+-- Debug logging for diagnosing follow mode issues
+local function debug_log(fmt, ...)
+    local msg = string.format(fmt, ...)
+    io.stderr:write("[select_wm] " .. msg .. "\n")
+end
+
 -- Label making
 
 -- Calculates the minimum number of characters needed in a hint given a
@@ -179,19 +185,45 @@ local function bounding_boxes_intersect(a, b)
     return true
 end
 
+-- Counter for detailed element logging (only first few elements)
+local detailed_log_count = 0
+local MAX_DETAILED_LOGS = 5
+
 local function get_element_bb_if_visible(element, wbb, client_rects)
     -- Find the element bounding box
     local r
+    local do_detail = detailed_log_count < MAX_DETAILED_LOGS
+    local tag = element.tag_name
 
     if not element.first_child then
         r = element:client_rects()
+        if do_detail then
+            debug_log("  element <%s>: client_rects count=%d", tag, #r)
+        end
         for i=#r,1,-1 do
             if r[i].width == 0 or r[i].height == 0 then table.remove(r, i) end
         end
-        if #r == 0 then return nil end
+        if #r == 0 then
+            if do_detail then
+                debug_log("  element <%s>: FILTERED - no valid client rects", tag)
+                detailed_log_count = detailed_log_count + 1
+            end
+            return nil
+        end
         r = r[1]
     else
         r = client_rects(element) or element.rect
+        if do_detail then
+            debug_log("  element <%s>: using client_rects wrapper, r=%s", tag, r and "ok" or "nil")
+        end
+    end
+
+    if not r then
+        if do_detail then
+            debug_log("  element <%s>: FILTERED - r is nil", tag)
+            detailed_log_count = detailed_log_count + 1
+        end
+        return nil
     end
 
     local rbb = {
@@ -201,13 +233,29 @@ local function get_element_bb_if_visible(element, wbb, client_rects)
         h = r.height,
     }
 
-    if rbb.w == 0 or rbb.h == 0 then return nil end
+    if rbb.w == 0 or rbb.h == 0 then
+        if do_detail then
+            debug_log("  element <%s>: FILTERED - zero dimensions w=%d h=%d", tag, rbb.w, rbb.h)
+            detailed_log_count = detailed_log_count + 1
+        end
+        return nil
+    end
 
     local style = element.style
     local display = style.display
     local visibility = style.visibility
 
-    if display == 'none' or visibility == 'hidden' then return nil end
+    if do_detail then
+        debug_log("  element <%s>: display='%s' visibility='%s'", tag, display, visibility)
+    end
+
+    if display == 'none' or visibility == 'hidden' then
+        if do_detail then
+            debug_log("  element <%s>: FILTERED - display/visibility", tag)
+            detailed_log_count = detailed_log_count + 1
+        end
+        return nil
+    end
 
     -- Clip bounding box!
     if display == "inline" then
@@ -236,6 +284,7 @@ end
 local function frame_find_hints(client_rects, frame, elements)
     local hints = {}
 
+    local selector_used = type(elements) == "string" and elements or "(element list)"
     if type(elements) == "string" then
         elements = frame.body:query(elements)
     else
@@ -247,6 +296,7 @@ local function frame_find_hints(client_rects, frame, elements)
         end
         elements = elems
     end
+    debug_log("frame_find_hints: selector='%s', found %d elements", selector_used, #elements)
 
     -- Find the visible bounding box
     local w = frame.doc.window
@@ -256,7 +306,9 @@ local function frame_find_hints(client_rects, frame, elements)
         w = w.inner_width,
         h = w.inner_height,
     }
+    debug_log("frame_find_hints: viewport x=%d y=%d w=%d h=%d", wbb.x, wbb.y, wbb.w, wbb.h)
 
+    local filtered_count = 0
     for _, element in ipairs(elements) do
         local rbb = get_element_bb_if_visible(element,wbb, client_rects)
 
@@ -268,8 +320,11 @@ local function frame_find_hints(client_rects, frame, elements)
             end
             if text == "" then text = element.attr.placeholder or "" end
             hints[#hints+1] = { elem = element, bb = rbb, text = text }
+        else
+            filtered_count = filtered_count + 1
         end
     end
+    debug_log("frame_find_hints: %d visible hints, %d filtered out", #hints, filtered_count)
 
     return hints
 end
@@ -288,11 +343,14 @@ local function make_labels(num)
 end
 
 local function find_frames(root_frame)
+    debug_log("find_frames: doc=%s, body=%s", tostring(root_frame.doc), tostring(root_frame.body))
     if not root_frame.body then
+        debug_log("find_frames: body is nil, returning empty")
         return {}
     end
 
     local subframes = root_frame.body:query("frame, iframe")
+    debug_log("find_frames: found %d subframes", #subframes)
     local frames = { root_frame }
 
     -- For each frame/iframe element, recurse
@@ -316,8 +374,15 @@ local function init_frame(frame, stylesheet)
     frame.overlay = frame.doc:create_element("div", { id = "luakit_select_overlay" })
     frame.stylesheet = frame.doc:create_element("style", { id = "luakit_select_stylesheet" }, stylesheet)
 
-    frame.body.parent:append(frame.overlay)
-    frame.body.parent:append(frame.stylesheet)
+    local parent = frame.body.parent
+    debug_log("init_frame: body.parent=%s (tag=%s)", tostring(parent), parent and parent.tag_name or "nil")
+    if parent then
+        parent:append(frame.overlay)
+        parent:append(frame.stylesheet)
+        debug_log("init_frame: overlay and stylesheet appended")
+    else
+        debug_log("init_frame: ERROR - body.parent is nil!")
+    end
 end
 
 local function cleanup_frame(frame)
@@ -421,6 +486,8 @@ end
 -- @treturn {...} Table with data for the currently focused hint.
 -- @treturn number The number of currently visible hints.
 function _M.enter(page, elements, stylesheet, ignore_case)
+    debug_log("enter: page.id=%s, elements type=%s", tostring(page.id), type(elements))
+    detailed_log_count = 0  -- Reset for fresh detailed logging
     assert(type(page) == "page")
     assert(type(elements) == "string" or type(elements) == "table")
     assert(type(stylesheet) == "string")
@@ -428,7 +495,9 @@ function _M.enter(page, elements, stylesheet, ignore_case)
     assert(page_states[page_id] == nil)
 
     local root = page.document
+    debug_log("enter: document=%s", tostring(root))
     local root_frame = { doc = root, body = root.body }
+    debug_log("enter: body=%s", tostring(root.body))
 
     local state = {}
     page_states[page_id] = state
@@ -508,6 +577,7 @@ function _M.enter(page, elements, stylesheet, ignore_case)
     end
 
     filter(state, "", "")
+    debug_log("enter: total hints=%d, visible=%d", #state.hints, state.num_visible_hints)
     return focus(state, 0), state.num_visible_hints
 end
 
