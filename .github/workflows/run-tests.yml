@@ -142,6 +142,7 @@ jobs:
             libsoup3 \
             lua51-luafilesystem \
             lua51-luasocket \
+            lua51-luassert \
             lua51 \
             luajit \
             sqlite3 \
