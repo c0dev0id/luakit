@@ -179,7 +179,6 @@ jobs:
             libsoup3 \
             lua51-luafilesystem \
             lua51-luasocket \
-            lua51-luassert \
             lua51 \
             luajit \
             sqlite3 \
@@ -187,6 +186,20 @@ jobs:
             pkgconf \
             xorg-vfbserver
 
+          echo ""
+          echo "========================================"
+          echo "Installing luassert manually"
+          echo "========================================"
+          # Install say dependency
+          git clone --depth 1 https://github.com/Olivine-Labs/say.git /tmp/say
+          sudo mkdir -p /usr/local/share/lua/5.1/say
+          sudo cp -R /tmp/say/src/* /usr/local/share/lua/5.1/say/
+          
+          # Install luassert
+          git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert
+          sudo mkdir -p /usr/local/share/lua/5.1/luassert
+          sudo cp -R /tmp/luassert/src/* /usr/local/share/lua/5.1/luassert/
+          
           
           echo ""
           echo "========================================"
