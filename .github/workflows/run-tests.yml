@@ -781,8 +781,8 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
 
-    - name: Update container packages
-      run: xbps-install -Syu
+    #- name: Update container packages
+    #  run: xbps-install -Syu
     
     - name: Cache xbps packages
       uses: actions/cache@v4
@@ -808,6 +808,7 @@ jobs:
           pkg-config \
           sqlite-devel \
           xorg-server-xvfb
+        xbps-remove -y luarocks-lua53
         luarocks --lua-version=jit install luasay
         luarocks --lua-version=jit install luassert
         luarocks --lua-version=jit install luacheck
