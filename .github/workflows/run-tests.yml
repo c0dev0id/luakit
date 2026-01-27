@@ -191,14 +191,14 @@ jobs:
           echo "Installing luassert manually"
           echo "========================================"
           # Install say dependency
-          git clone --depth 1 https://github.com/Olivine-Labs/say.git /tmp/say
+          git clone --depth 1 https://github.com/Olivine-Labs/say.git /tmp/say || exit 1
           sudo mkdir -p /usr/local/share/lua/5.1/say
-          sudo cp -R /tmp/say/src/* /usr/local/share/lua/5.1/say/
+          sudo cp -R /tmp/say/src/* /usr/local/share/lua/5.1/say/ || exit 1
           
           # Install luassert
-          git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert
+          git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert || exit 1
           sudo mkdir -p /usr/local/share/lua/5.1/luassert
-          sudo cp -R /tmp/luassert/src/* /usr/local/share/lua/5.1/luassert/
+          sudo cp -R /tmp/luassert/src/* /usr/local/share/lua/5.1/luassert/ || exit 1
           
           
           echo ""
