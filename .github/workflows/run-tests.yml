@@ -141,7 +141,6 @@ jobs:
             libsoup3 \
             lua51-luafilesystem \
             lua51-luasocket \
-            lua51-luarocks \
             lua51 \
             luajit \
             sqlite3 \
@@ -149,16 +148,6 @@ jobs:
             pkgconf \
             xorg-vfbserver
 
-          echo ""
-          echo "========================================"
-          echo "Fixhacking luarocks (really? FreeBSD?)"
-          echo "========================================"
-          sudo sed -i '' 's/local f, err = load(chunk, filename, "t", _G)/local f, err = loadstring(chunk, filename); if f then setfenv(f, _G) end/' /usr/local/share/lua/5.1/luarocks/core/persist.lua
-
-          echo "========================================"
-          echo "Installing luasocket via luarocks"
-          echo "========================================"
-          sudo luarocks51 install luasocket
           
           echo ""
           echo "========================================"
