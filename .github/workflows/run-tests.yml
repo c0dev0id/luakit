@@ -809,13 +809,13 @@ jobs:
           libwebkit2gtk41-devel \
           lua51-luafilesystem \
           lua51-luasocket \
-          luarocks \
+          luarocks-lua51 \
           pkg-config \
           sqlite-devel \
           xorg-server-xvfb
-        luarocks --lua-version=5.1 install luasay
-        luarocks --lua-version=5.1 install luassert
-        luarocks --lua-version=5.1 install luacheck
+        luarocks --lua-version=jit install luasay
+        luarocks --lua-version=jit install luassert
+        luarocks --lua-version=jit install luacheck
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
