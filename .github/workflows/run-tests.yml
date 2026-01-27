@@ -56,10 +56,19 @@ jobs:
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
       
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: apt-ubuntu-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apt-ubuntu-
+      
     - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
+          ccache \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -72,10 +81,31 @@ jobs:
           lua-socket \
           git
     
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: ubuntu-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-ubuntu-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-ubuntu-
+    
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         xvfb-run -a make -j1 run-tests
+        ccache -s
 
   freebsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_freebsd
@@ -95,12 +125,14 @@ jobs:
         operating_system: freebsd
         version: '14.0'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on FreeBSD"
           echo "========================================"
           
           sudo pkg install -y \
+            ccache \
             dbus \
             git \
             glib \
@@ -130,6 +162,13 @@ jobs:
           
           echo ""
           echo "========================================"
+          echo "Setting up ccache"
+          echo "========================================"
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          
+          echo ""
+          echo "========================================"
           echo "Building luakit"
           echo "========================================"
           gmake -j1
@@ -139,6 +178,12 @@ jobs:
           echo "Running tests"
           echo "========================================"
           gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
 
   openbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
@@ -158,12 +203,14 @@ jobs:
         operating_system: openbsd
         version: '7.5'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on OpenBSD"
           echo "========================================"
           
           sudo pkg_add \
+            ccache \
             git \
             glib2 \
             gmake \
@@ -177,6 +224,13 @@ jobs:
           
           echo ""
           echo "========================================"
+          echo "Setting up ccache"
+          echo "========================================"
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          
+          echo ""
+          echo "========================================"
           echo "Building luakit"
           echo "========================================"
           gmake -j1
@@ -186,6 +240,12 @@ jobs:
           echo "Running tests"
           echo "========================================"
           gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
@@ -205,12 +265,14 @@ jobs:
         operating_system: netbsd
         version: '10.0'
         shell: bash
+        sync_files: runner-to-vm
         run: |
           echo "========================================"
           echo "Installing dependencies on NetBSD"
           echo "========================================"
           
           sudo pkgin -y install \
+            ccache \
             git \
             glib2 \
             gmake \
@@ -225,6 +287,13 @@ jobs:
           
           echo ""
           echo "========================================"
+          echo "Setting up ccache"
+          echo "========================================"
+          export CC="ccache gcc"
+          export CXX="ccache g++"
+          
+          echo ""
+          echo "========================================"
           echo "Building luakit"
           echo "========================================"
           gmake -j1
@@ -234,6 +303,12 @@ jobs:
           echo "Running tests"
           echo "========================================"
           gmake -j1 run-tests
+          
+          echo ""
+          echo "========================================"
+          echo "ccache statistics"
+          echo "========================================"
+          ccache -s
 
 
   debian:
@@ -253,12 +328,21 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache APT packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apt/archives
+        key: apt-debian-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apt-debian-
       
     - name: Install dependencies
       run: |
         apt-get update
         apt-get install -y \
           build-essential \
+          ccache \
           luajit \
           libluajit-5.1-dev \
           libjavascriptcoregtk-4.1-dev \
@@ -272,10 +356,31 @@ jobs:
           xvfb \
           git
     
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: debian-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-debian-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-debian-
+    
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         make -j1 run-tests
+        ccache -s
 
   arch:
     if: github.event_name == 'workflow_dispatch' && inputs.test_arch
@@ -294,11 +399,20 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache Pacman packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/pacman/pkg
+        key: pacman-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          pacman-
       
     - name: Install dependencies
       run: |
         pacman -S --noconfirm \
           base-devel \
+          ccache \
           dbus \
           git \
           gtk3 \
@@ -310,10 +424,31 @@ jobs:
           webkit2gtk-4.1 \
           xorg-server-xvfb
     
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: arch-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-arch-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-arch-
+    
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         make -j1 run-tests
+        ccache -s
 
   alpine:
     if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
@@ -330,12 +465,21 @@ jobs:
       
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache APK packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/apk
+        key: apk-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          apk-
       
     - name: Install dependencies
       run: |
         apk add --no-cache \
           bash \
           build-base \
+          ccache \
           dbus \
           git \
           glib-dev \
@@ -348,10 +492,31 @@ jobs:
           webkit2gtk-4.1-dev \
           xvfb-run
     
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: alpine-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-alpine-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-alpine-
+    
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         xvfb-run -a make -j1 run-tests
+        ccache -s
 
   void:
     if: github.event_name == 'workflow_dispatch' && inputs.test_void
@@ -371,6 +536,14 @@ jobs:
 
     - name: Update container packages
       run: xbps-install -Syu
+    
+    - name: Cache xbps packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/xbps
+        key: xbps-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          xbps-
       
     - name: Install dependencies
       run: |
@@ -378,6 +551,7 @@ jobs:
           LuaJIT \
           LuaJIT-devel \
           base-devel \
+          ccache \
           glib-devel \
           gtk+3-devel \
           libwebkit2gtk41-devel \
@@ -388,11 +562,42 @@ jobs:
           sqlite-devel \
           xorg-server-xvfb
         luarocks install luassert
+    
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: void-ccache
+        max-size: 500M
+    
+    - name: Cache luarocks
+      uses: actions/cache@v4
+      with:
+        path: |
+          /usr/local/lib/luarocks
+          ~/.luarocks
+        key: luarocks-void-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          luarocks-void-
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-void-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-void-
 
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         make -j1 run-tests
+        ccache -s
 
   gentoo:
     if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
@@ -417,6 +622,22 @@ jobs:
 
     - name: Configure git safe directory
       run: git config --global --add safe.directory /__w/luakit/luakit
+    
+    - name: Cache binary packages
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/binpkgs
+        key: gentoo-binpkgs-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          gentoo-binpkgs-
+    
+    - name: Cache distfiles
+      uses: actions/cache@v4
+      with:
+        path: /var/cache/distfiles
+        key: gentoo-distfiles-${{ hashFiles('.github/workflows/run-tests.yml') }}
+        restore-keys: |
+          gentoo-distfiles-
       
     - name: Install dependencies
       run: |
@@ -426,12 +647,34 @@ jobs:
           dev-libs/glib \
           dev-lua/luafilesystem \
           dev-lua/luasocket \
+          dev-util/ccache \
           net-libs/webkit-gtk:4.1 \
           sys-apps/dbus \
           x11-base/xorg-server \
           x11-libs/gtk+:3
     
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        key: gentoo-ccache
+        max-size: 500M
+    
+    - name: Cache build artifacts
+      uses: actions/cache@v4
+      with:
+        path: |
+          **/*.o
+          common/tokenize.h
+          common/tokenize.c
+          buildopts.h
+        key: build-gentoo-${{ hashFiles('**/*.c', '**/*.h', 'Makefile') }}
+        restore-keys: |
+          build-gentoo-
+    
     - name: Built and test
       run: |
+        export CC="ccache gcc"
+        export CXX="ccache g++"
         make -j1
         make -j1 run-tests
+        ccache -s
