@@ -134,6 +134,7 @@ jobs:
           sudo pkg install -y \
             ccache \
             dbus \
+            gcc \
             git \
             glib \
             gmake \
