@@ -53,9 +53,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Configure git safe directory
-      run: git config --global --add safe.directory /__w/luakit/luakit
-      
     - name: Cache APT packages
       uses: actions/cache@v4
       with:
@@ -80,6 +77,9 @@ jobs:
           lua-filesystem \
           lua-socket \
           git
+
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
@@ -453,17 +453,9 @@ jobs:
     container: debian:stable
     
     steps:
-    - name: Install git
-      run: |
-        apt-get update
-        apt-get install -y git
-    
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Configure git safe directory
-      run: git config --global --add safe.directory /__w/luakit/luakit
-    
     - name: Cache APT packages
       uses: actions/cache@v4
       with:
@@ -490,6 +482,9 @@ jobs:
           lua-socket \
           xvfb \
           git
+
+    - name: Configure git safe directory
+      run: git config --global --add safe.directory /__w/luakit/luakit
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
