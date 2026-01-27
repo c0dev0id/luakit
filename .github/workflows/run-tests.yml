@@ -197,8 +197,7 @@ jobs:
 
           # Install luassert
           git clone --depth 1 https://github.com/lunarmodules/luassert.git /tmp/luassert || exit 1
-          sudo mkdir -p /usr/local/share/lua/5.1/luassert
-          sudo cp -R /tmp/luassert/src/. /usr/local/share/lua/5.1/luassert/ || exit 1
+          sudo cp -R /tmp/luassert/src /usr/local/share/lua/5.1/luassert || exit 1
 
 
           
