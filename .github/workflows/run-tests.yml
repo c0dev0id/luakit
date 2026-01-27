@@ -797,9 +797,12 @@ jobs:
         xbps-install -Sy \
           base-devel \
           ccache \
+          LuaJIT \
+          LuaJIT-devel \
           glib-devel \
           gtk+3-devel \
           libwebkit2gtk41-devel \
+
           lua51 \
           lua51-luafilesystem \
           lua51-luasocket \
