@@ -797,7 +797,7 @@ jobs:
           libwebkit2gtk41-devel \
           lua51-luafilesystem \
           lua51-luasocket \
-          luarocks \
+          luarocks-lua51 \
           pkg-config \
           sqlite-devel \
           xorg-server-xvfb
