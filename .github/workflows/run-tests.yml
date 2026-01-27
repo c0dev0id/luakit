@@ -14,15 +14,15 @@ on:
       test_debian:
         description: 'Test on Debian'
         type: boolean
-        default: false
+        default: true
       test_arch:
         description: 'Test on Arch Linux'
         type: boolean
-        default: false
+        default: true
       test_alpine:
         description: 'Test on Alpine Linux'
         type: boolean
-        default: false
+        default: true
       test_void:
         description: 'Test on Void Linux'
         type: boolean
@@ -30,19 +30,19 @@ on:
       test_gentoo:
         description: 'Test on Gentoo Linux'
         type: boolean
-        default: false
+        default: true
       test_freebsd:
         description: 'Test on FreeBSD'
         type: boolean
-        default: false
+        default: true
       test_openbsd:
         description: 'Test on OpenBSD'
         type: boolean
-        default: false
+        default: true
       test_netbsd:
         description: 'Test on NetBSD'
         type: boolean
-        default: false
+        default: true
 jobs:
   ubuntu:
     if: github.event_name != 'workflow_dispatch' || inputs.test_ubuntu
@@ -111,7 +111,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: xvfb-run -a make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        xvfb-run -a make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
@@ -143,7 +145,7 @@ jobs:
       run: exit 1
 
   freebsd:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_freebsd
+    if: github.event_name != 'workflow_dispatch' || inputs.test_freebsd
     name: FreeBSD
     runs-on: ubuntu-latest
     
@@ -227,6 +229,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
+          export LIBGL_ALWAYS_SOFTWARE=1
           gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
@@ -261,7 +264,7 @@ jobs:
       run: exit 1
 
   openbsd:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_openbsd
+    if: github.event_name != 'workflow_dispatch' || inputs.test_openbsd
     name: OpenBSD
     runs-on: ubuntu-latest
     
@@ -317,6 +320,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
+          export LIBGL_ALWAYS_SOFTWARE=1
           gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
@@ -352,7 +356,7 @@ jobs:
 
   netbsd:
     if: github.event_name == 'workflow_dispatch' && inputs.test_netbsd
-    name: NetBSD
+    name: NetBSD (missing webkitgtk)
     runs-on: ubuntu-latest
     
     steps:
@@ -407,6 +411,7 @@ jobs:
           echo "========================================"
           echo "Running tests"
           echo "========================================"
+          export LIBGL_ALWAYS_SOFTWARE=1
           gmake -j1 run-tests || (echo "TEST_FAILED=true" >> $GITHUB_ENV && exit 1)
           
           echo ""
@@ -442,7 +447,7 @@ jobs:
 
 
   debian:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_debian
+    if: github.event_name != 'workflow_dispatch' || inputs.test_debian
     name: Debian Stable
     runs-on: ubuntu-latest
     container: debian:stable
@@ -516,7 +521,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
@@ -548,7 +555,7 @@ jobs:
       run: exit 1
 
   arch:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_arch
+    if: github.event_name != 'workflow_dispatch' || inputs.test_arch
     name: Arch Linux
     runs-on: ubuntu-latest
     container: archlinux:latest
@@ -620,7 +627,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
@@ -652,7 +661,7 @@ jobs:
       run: exit 1
 
   alpine:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_alpine
+    if: github.event_name != 'workflow_dispatch' || inputs.test_alpine
     name: Alpine Linux
     runs-on: ubuntu-latest
     container: alpine:latest
@@ -727,7 +736,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: xvfb-run -a make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        xvfb-run -a make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
@@ -759,7 +770,7 @@ jobs:
       run: exit 1
 
   void:
-    if: github.event_name == 'workflow_dispatch' && inputs.test_void
+    if: github.event_name != 'workflow_dispatch' || inputs.test_void
     name: Void Linux
     runs-on: ubuntu-latest
     container: ghcr.io/void-linux/void-linux:latest-full-x86_64
@@ -797,13 +808,13 @@ jobs:
           libwebkit2gtk41-devel \
           lua51-luafilesystem \
           lua51-luasocket \
-          luarocks-lua51 \
+          luarocks \
           pkg-config \
           sqlite-devel \
           xorg-server-xvfb
-        luarocks install luasay
-        luarocks install luassert
-        luarocks install luacheck
+        luarocks --lua-version=5.1 install luasay
+        luarocks --lua-version=5.1 install luassert
+        luarocks --lua-version=5.1 install luacheck
     
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1.2
@@ -843,7 +854,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
@@ -876,7 +889,7 @@ jobs:
 
   gentoo:
     if: github.event_name == 'workflow_dispatch' && inputs.test_gentoo
-    name: Gentoo Linux
+    name: Gentoo Linux (very slow)
     runs-on: ubuntu-latest
     container: gentoo/stage3:latest
     timeout-minutes: 120
@@ -961,7 +974,9 @@ jobs:
       id: test
       continue-on-error: true
       if: steps.build.outcome == 'success'
-      run: make -j1 run-tests
+      run: |
+        export LIBGL_ALWAYS_SOFTWARE=1
+        make -j1 run-tests
     
     - name: Show ccache statistics
       if: always()
