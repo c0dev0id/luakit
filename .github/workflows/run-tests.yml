@@ -99,7 +99,7 @@ jobs:
         restore-keys: |
           build-ubuntu-
     
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
@@ -374,7 +374,7 @@ jobs:
         restore-keys: |
           build-debian-
     
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
@@ -442,7 +442,7 @@ jobs:
         restore-keys: |
           build-arch-
     
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
@@ -510,7 +510,7 @@ jobs:
         restore-keys: |
           build-alpine-
     
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
@@ -572,9 +572,7 @@ jobs:
     - name: Cache luarocks
       uses: actions/cache@v4
       with:
-        path: |
-          /usr/local/lib/luarocks
-          ~/.luarocks
+        path: ~/.luarocks
         key: luarocks-void-${{ hashFiles('.github/workflows/run-tests.yml') }}
         restore-keys: |
           luarocks-void-
@@ -591,7 +589,7 @@ jobs:
         restore-keys: |
           build-void-
 
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
@@ -671,7 +669,7 @@ jobs:
         restore-keys: |
           build-gentoo-
     
-    - name: Built and test
+    - name: Build and test
       run: |
         export CC="ccache gcc"
         export CXX="ccache g++"
