@@ -113,6 +113,13 @@ end)
 
 ui:add_signal("enter", function(_, page, mode, ignore_case)
     msg.warn("[follow_wm] received 'enter' signal, selector=%s", mode.selector)
+    msg.warn("[follow_wm] page=%s, page.id=%s", tostring(page), tostring(page and page.id))
+
+    if not page or not page.id then
+        msg.error("[follow_wm] ERROR: page or page.id is nil!")
+        return
+    end
+
     page_mode[page] = mode
     local ok, err = pcall(function()
         select.enter(page, mode.selector, mode.stylesheet, ignore_case)
@@ -122,7 +129,13 @@ ui:add_signal("enter", function(_, page, mode, ignore_case)
         return
     end
 
-    local num_visible_hints = #(select.hints(page))
+    local hints = select.hints(page)
+    if not hints then
+        msg.error("[follow_wm] select.hints returned nil!")
+        return
+    end
+
+    local num_visible_hints = #hints
     msg.warn("[follow_wm] hints found: %d", num_visible_hints)
     ui:emit_signal("matches", page.id, num_visible_hints)
 end)
