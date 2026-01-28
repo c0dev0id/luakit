@@ -50,8 +50,8 @@ Follow the project's established commit message conventions:
 When making changes:
 1. Generate a unified diff patch file with `.patch` extension
 2. Present the patch in a downloadable code block
-3. Show command: `rm -vf /home/sdk/Downloads/<patchname>*.path"
-4. Show command: `git apply /home/sdk/Downloads/<patchname>*.path"
+3. Show command: `rm -vf /home/sdk/Downloads/<patchname>*.patch"
+4. Show command: `git apply /home/sdk/Downloads/<patchname>*.patch"
 
 ## Public API Protection
 
