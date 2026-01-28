@@ -1,4 +1,28 @@
-## Core Principles
+# Instructions
+
+The luakit browser is old and has not been maintained for a long time. The goal of this repository is to get familiar with the old codebase and modernize it step by step.
+
+## Phase 1 (stabilization):
+- We'll stabilize the current code base
+- We'll fix bugs and issues reported in the upstream repository (https://github.com/luakit/luakit/issues)
+- We will write more tests to safeguard future changes
+- We will add error handling and more debug output to be able to follow the process flow
+
+## Phase 2 (modernization without API break):
+- We will start replacing deprecated functions and methods with newer variants
+- We will will refactor the codebase to be easier to understand
+- We will update libraries where possible, without breaking compatibility
+
+## Phase 3 (the big upgrade):
+- We start the journey to upgrade to gtk4, and newer javascriptcore and webkitgtk versions
+- We try to maintain compatibility on the user facing APIs where possible without fallback
+- For compatibility breaking changes, we maintain the MIGRATION_NEXT.md document
+
+## Phase 4 (stabilization + optimization:
+- When the migration is done, we concentrate on testing and stabilization
+- We will also explore optimization opportunities to speed the application up
+
+# Core Principles
 
 **KISS - Keep It Simple, Stupid**
 - Make small, focused changes
@@ -158,6 +182,9 @@ API changes require updates in:
 
 
 ## C Coding Standards
+
+C shall be written according to the C99 Standard whenever possible.
+Lua code shall be written in Lua Version 5.1.
 
 ### File Structure
 
