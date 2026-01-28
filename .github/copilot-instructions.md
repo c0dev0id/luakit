@@ -1,7 +1,3 @@
-# Luakit AI Instructions
-
-This document provides instructions for AI assistants working on the Luakit codebase.
-
 ## Core Principles
 
 **KISS - Keep It Simple, Stupid**
@@ -11,8 +7,7 @@ This document provides instructions for AI assistants working on the Luakit code
 - Always handle errors properly
 
 **Compatibility Requirements**
-- Luakit supports many Linux distributions and BSDs
-- Scripts and code must work across different platforms
+- Scripts and code must work across different platforms (Linux and BSDs)
 - Don't assume GNU-specific tools or syntax
 - Test compatibility when using shell commands (sed, awk, etc.)
 
@@ -21,12 +16,11 @@ This document provides instructions for AI assistants working on the Luakit code
 - Maintain compatibility with both implementations
 - Don't use features exclusive to Lua 5.2+ or LuaJIT-only APIs
 
-## Communication Guidelines
-
-- Don't apologize
-- Don't tell me that I'm right when I'm not. If you believe the accuracy score of my statement is below 80%, let me know and correct me. I may still tell you to follow my orders despite the low score.
-- If you're giving me information with an accuracy score below 80%, append the accuracy score at the end of the response.
-- If you're unsure about what the issue is or if I did not provide enough information, don't guess a solution, but provide options to gather more information and to debug the issue properly.
+1. **USE EXISTING MECHANISMS WHENEVER POSSIBLE** - Never introduce new patterns, frameworks, or approaches
+2. **MAINTAIN CONSISTENCY** - Follow established conventions exactly
+3. **NO DEVIATION** - If similar code exists, copy its style precisely
+4. **TEST EVERYTHING** - Add tests using existing test infrastructure
+5. **DOCUMENT PROPERLY** - Use existing documentation patterns
 
 ## Commit Message Style
 
@@ -56,14 +50,8 @@ Follow the project's established commit message conventions:
 When making changes:
 1. Generate a unified diff patch file with `.patch` extension
 2. Present the patch in a downloadable code block
-5. Use complete absolute paths in all commands
-
-**User Environment:**
-- Operating System: OpenBSD
-- Download directory: `/home/sdk/Downloads`
-- Repository location: `/home/sdk/luakit`
-- Patch application method: `git apply`
-- Command format: No explanations, no patch creation commands, complete paths only, OpenBSD-compatible commands (no GNU-specific options)
+3. Show command: `rm -vf /home/sdk/Downloads/<patchname>*.path"
+4. Show command: `git apply /home/sdk/Downloads/<patchname>*.path"
 
 ## Public API Protection
 
@@ -168,72 +156,8 @@ API changes require updates in:
 - `MIGRATION_NEXT.md` (for breaking changes)
 - `CHANGELOG.md` (for all changes)
 
-## Output Format for Changes
 
-When proposing changes, ALWAYS use this format:
-
-- create a script that generates the patch file
-- provide a downloadable script file in a code block
-- the script file contains git commands to create file paths
-- the script file applies the patch using absolute paths
-- the script file checks if the patch has already been applied, if so, skip patch
-- example output (stdout) of the script file:
-    removing old version: rm -f /home/sdk/Downloads/*.{sh,patch}
-    creating patch: luakit_fix_bug123.patch (relative to /home/sdk/Downloads)
-    creating directory: path/to/modified/file (relative to /home/sdk/luakit)
-    applying patch: done -> <commit_id>
-    applying patch: skipped -> <commit_id_of_already_applied_patch>
-    removing myself: rm -f /home/sdk/Downloads/*.{sh,patch} (if no errors above)
-
-### Important: Patch Delivery Methods
-
-When creating patch scripts:
-
-- **Avoid complex pre-checks**: Don't use `git diff --quiet` to determine if a patch needs applying. This can cause false positives and skip patches that haven't been applied yet.
-  Instead, simply attempt `git apply` directly and handle success/failure.
-
-- **Use base64 encoding for patch content**: When embedding patches in heredocs, use base64 encoding to avoid:
-  - Markdown rendering conflicts (backticks, code blocks)
-  - Heredoc escaping issues
-  - Special character problems
-
-  Example: `base64 -d > "${DOWNLOADS}/${PATCH_NAME}" << 'PATCH_EOF'`
-
-  - **Especially important** for .github/copilot-instructions.md, which contains markdown code blocks.
-
-**Do NOT:**
-- Create pull requests
-- Use relative paths
-- Add explanatory text between command blocks
-- Guess at version suffixes
-
-## Summary
-
-**Remember:** Luakit is a user-configurable browser. Users rely on the API remaining stable across versions. Treat API stability as a top priority, and always document changes clearly to help users migrate.
-
-**When in doubt:**
-- Ask before changing
-- Document thoroughly
-- Test with real user configurations
-- Provide migration examples
-- Do not break users without warning
-# Luakit Development AI Instructions
-
-This document provides strict guidelines for maintaining code consistency, organization, testing, and documentation standards in the luakit project. **These instructions must be followed for all code contributions.**
-
----
-
-## 🎯 Core Principles
-
-1. **USE EXISTING MECHANISMS ONLY** - Never introduce new patterns, frameworks, or approaches
-2. **MAINTAIN CONSISTENCY** - Follow established conventions exactly
-3. **NO DEVIATION** - If similar code exists, copy its style precisely
-4. **TEST EVERYTHING** - Add tests using existing test infrastructure
-5. **DOCUMENT PROPERLY** - Use existing documentation patterns
-
----
-
-## 📝 C Code Style Standards
+## C Coding Standards
 
 ### File Structure
 
@@ -943,7 +867,3 @@ If you're unsure about how to implement something:
 4. **Ask maintainers** - Open an issue for discussion
 
 **Remember**: When in doubt, copy an existing pattern rather than inventing a new one!
-
----
-
-*This document should be treated as the source of truth for code contributions. AI tools and developers should reference this document to ensure consistency with luakit's established patterns and conventions.*
