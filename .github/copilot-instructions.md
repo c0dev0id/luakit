@@ -22,6 +22,13 @@ The luakit browser is old and has not been maintained for a long time. The goal 
 - When the migration is done, we concentrate on testing and stabilization
 - We will also explore optimization opportunities to speed the application up
 
+# Documentation to use:
+- https://webkitgtk.org/reference/webkit2gtk/<version>/ contains documentation for the different webkit2 versions
+- https://webkitgtk.org/reference/jsc-glib/<version>/ contains documentation for the different javascriptcore versions
+- https://webkitgtk.org/reference/webkit2gtk-web-extension/<version>/ contains documentation for the different webkit2 web-extension versions
+- https://docs.gtk.org contains documentation for the different gtk and gdk library versions
+- https://luakit.github.io/docs This is the current Luakit API specification, which defines the stable external API
+
 # Core Principles
 
 **KISS - Keep It Simple, Stupid**
