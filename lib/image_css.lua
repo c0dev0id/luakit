@@ -54,10 +54,12 @@ _M.stylesheet = stylesheet{ source = css }
 webview.add_signal("init", function (view)
     local top_level = {}
     local uri_mime_cache = {}
+    local image_loading = false
 
     view:add_signal("load-status", function (v, status)
         if status == "provisional" then
             top_level[v] = true
+            image_loading = false
             settings.override_setting_for_view(view, "webview.zoom_level", nil)
         elseif status == "committed" then
             top_level[v] = nil
@@ -65,9 +67,18 @@ webview.add_signal("init", function (view)
             local is_image = mime and mime:match("^image/")
             view.stylesheets[_M.stylesheet] = is_image
             if is_image then
+                image_loading = true
                 wm:emit_signal(view, "image")
                 view.zoom_level = 1.0
                 settings.override_setting_for_view(view, "webview.zoom_level", 100)
+            end
+        elseif status == "finished" then
+            if image_loading then
+                image_loading = false
+                local w = window.ancestor(v)
+                if w and w.view == v then
+                    wm:emit_signal(view, "recalc")
+                end
             end
         end
     end)
@@ -79,6 +90,7 @@ webview.add_signal("init", function (view)
     end)
 
     local recalc_cb = function (v)
+        if image_loading then return end
         local w = window.ancestor(v)
         if w and w.view == v then
             wm:emit_signal(view, "recalc")
