@@ -55,18 +55,23 @@ webview.add_signal("init", function (view)
     local top_level = {}
     local uri_mime_cache = {}
     local image_loading = false
+    local was_image = false
 
     view:add_signal("load-status", function (v, status)
         if status == "provisional" then
             top_level[v] = true
             image_loading = false
-            settings.override_setting_for_view(view, "webview.zoom_level", nil)
+            if was_image then
+                settings.override_setting_for_view(view, "webview.zoom_level", nil)
+            end
+            was_image = false
         elseif status == "committed" then
             top_level[v] = nil
             local mime = uri_mime_cache[v.uri]
             local is_image = mime and mime:match("^image/")
             view.stylesheets[_M.stylesheet] = is_image
             if is_image then
+                was_image = true
                 image_loading = true
                 wm:emit_signal(view, "image")
                 view.zoom_level = 1.0
