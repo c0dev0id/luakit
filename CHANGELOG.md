@@ -16,6 +16,7 @@
 - Fixed a buffer overflow in IPC socket handling when socket paths exceed the `AF_UNIX` `sun_path` limit; replaced unsafe `strcpy` with a length-checked copy.
 - Fixed `dom_element.c` to be C99/clang compliant.
 - Restored the `enable_hyperlink_auditing` setting for builds against WebKitGTK versions prior to 2.50. On newer versions, the setting is not exposed, as it's deprecated and a no-op.
+- Fixed a Lua error logged from `settings.get_setting_for_view` when the `web-extension-loaded` signal fired on a freshly restored or freshly created tab whose URI was not yet set; the function now skips the domain lookup and returns the global default in that case.
 
 ### Contributors to this release:
 
